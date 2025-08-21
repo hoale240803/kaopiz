@@ -8,7 +8,7 @@ namespace KaopizAuth.Infrastructure.Data;
 /// <summary>
 /// Application database context
 /// </summary>
-public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>, IApplicationDbContext
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>, IApplicationDbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
@@ -31,26 +31,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        // Update timestamps
-        var entries = ChangeTracker
-            .Entries()
-            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified);
-
-        foreach (var entityEntry in entries)
-        {
-            if (entityEntry.Entity is ApplicationUser user)
-            {
-                if (entityEntry.State == EntityState.Added)
-                {
-                    user.CreatedAt = DateTime.UtcNow;
-                }
-                else if (entityEntry.State == EntityState.Modified)
-                {
-                    user.UpdatedAt = DateTime.UtcNow;
-                }
-            }
-        }
-
+        // TODO: Add audit trail logic here when implementing user management (Ticket 6)
         return await base.SaveChangesAsync(cancellationToken);
     }
 }

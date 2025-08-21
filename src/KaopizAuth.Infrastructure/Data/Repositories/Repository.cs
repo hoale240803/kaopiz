@@ -1,5 +1,5 @@
 using System.Linq.Expressions;
-using KaopizAuth.Application.Common.Interfaces;
+using KaopizAuth.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace KaopizAuth.Infrastructure.Data.Repositories;
@@ -8,7 +8,10 @@ namespace KaopizAuth.Infrastructure.Data.Repositories;
 /// Generic repository implementation
 /// </summary>
 /// <typeparam name="T">Entity type</typeparam>
-public class Repository<T> : IRepository<T> where T : class
+/// <typeparam name="TKey">Primary key type</typeparam>
+public class Repository<T, TKey> : IRepository<T, TKey> 
+    where T : class 
+    where TKey : IEquatable<TKey>
 {
     protected readonly ApplicationDbContext _context;
     protected readonly DbSet<T> _dbSet;
@@ -19,9 +22,9 @@ public class Repository<T> : IRepository<T> where T : class
         _dbSet = context.Set<T>();
     }
 
-    public virtual async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public virtual async Task<T?> GetByIdAsync(TKey id, CancellationToken cancellationToken = default)
     {
-        return await _dbSet.FindAsync(id, cancellationToken);
+        return await _dbSet.FindAsync(new object[] { id }, cancellationToken);
     }
 
     public virtual async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -34,27 +37,34 @@ public class Repository<T> : IRepository<T> where T : class
         return await _dbSet.Where(predicate).ToListAsync(cancellationToken);
     }
 
+    public virtual async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.FirstOrDefaultAsync(predicate, cancellationToken);
+    }
+
     public virtual async Task<T> AddAsync(T entity, CancellationToken cancellationToken = default)
     {
         await _dbSet.AddAsync(entity, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
         return entity;
     }
 
-    public virtual async Task UpdateAsync(T entity, CancellationToken cancellationToken = default)
+    public virtual void Update(T entity)
     {
         _dbSet.Update(entity);
-        await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public virtual async Task DeleteAsync(T entity, CancellationToken cancellationToken = default)
+    public virtual void Remove(T entity)
     {
         _dbSet.Remove(entity);
-        await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public virtual async Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
+    public virtual async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
     {
         return await _dbSet.AnyAsync(predicate, cancellationToken);
+    }
+
+    public virtual async Task<int> CountAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.CountAsync(predicate, cancellationToken);
     }
 }

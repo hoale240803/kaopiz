@@ -22,6 +22,33 @@ public class LoginResponse
 }
 
 /// <summary>
+/// Refresh token request model
+/// </summary>
+public class RefreshTokenRequest
+{
+    public string RefreshToken { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Logout request model
+/// </summary>
+public class LogoutRequest
+{
+    public string RefreshToken { get; set; } = string.Empty;
+    public bool RevokeAllTokens { get; set; } = false;
+}
+
+/// <summary>
+/// Refresh token response model
+/// </summary>
+public class RefreshTokenResponse
+{
+    public string AccessToken { get; set; } = string.Empty;
+    public string RefreshToken { get; set; } = string.Empty;
+    public DateTime ExpiresAt { get; set; }
+}
+
+/// <summary>
 /// User data transfer object
 /// </summary>
 public class UserDto

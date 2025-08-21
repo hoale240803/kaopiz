@@ -1,3 +1,5 @@
+using KaopizAuth.Domain.Events;
+
 namespace KaopizAuth.Domain.Common;
 
 /// <summary>
@@ -49,6 +51,8 @@ public interface ISoftDeletableEntity
 public abstract class BaseEntity<TKey> : IAuditableEntity, ISoftDeletableEntity 
     where TKey : IEquatable<TKey>
 {
+    private readonly List<IDomainEvent> _domainEvents = new();
+
     protected BaseEntity()
     {
         CreatedTime = LastUpdatedTime = DateTimeOffset.UtcNow;
@@ -58,6 +62,37 @@ public abstract class BaseEntity<TKey> : IAuditableEntity, ISoftDeletableEntity
     /// Gets or sets the unique identifier for this entity
     /// </summary>
     public TKey Id { get; set; } = default!;
+
+    /// <summary>
+    /// Gets the domain events for this entity
+    /// </summary>
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
+    /// <summary>
+    /// Adds a domain event to this entity
+    /// </summary>
+    /// <param name="domainEvent">The domain event to add</param>
+    public void AddDomainEvent(IDomainEvent domainEvent)
+    {
+        _domainEvents.Add(domainEvent);
+    }
+
+    /// <summary>
+    /// Removes a domain event from this entity
+    /// </summary>
+    /// <param name="domainEvent">The domain event to remove</param>
+    public void RemoveDomainEvent(IDomainEvent domainEvent)
+    {
+        _domainEvents.Remove(domainEvent);
+    }
+
+    /// <summary>
+    /// Clears all domain events from this entity
+    /// </summary>
+    public void ClearDomainEvents()
+    {
+        _domainEvents.Clear();
+    }
 
     /// <summary>
     /// Gets or sets when this entity was created

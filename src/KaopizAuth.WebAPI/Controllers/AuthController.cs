@@ -45,6 +45,59 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Refresh token endpoint
+    /// </summary>
+    /// <param name="request">Refresh token request</param>
+    /// <returns>New access token</returns>
+    [HttpPost("refresh")]
+    public async Task<ActionResult<ApiResponse<RefreshTokenResponse>>> Refresh([FromBody] RefreshTokenRequest request)
+    {
+        var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+        
+        var command = new RefreshTokenCommand
+        {
+            RefreshToken = request.RefreshToken,
+            IpAddress = clientIp
+        };
+
+        var result = await _mediator.Send(command);
+        
+        if (result.Success)
+        {
+            return Ok(result);
+        }
+
+        return BadRequest(result);
+    }
+
+    /// <summary>
+    /// Logout endpoint
+    /// </summary>
+    /// <param name="request">Logout request</param>
+    /// <returns>Logout result</returns>
+    [HttpPost("logout")]
+    public async Task<ActionResult<ApiResponse<bool>>> Logout([FromBody] LogoutRequest request)
+    {
+        var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+        
+        var command = new LogoutCommand
+        {
+            RefreshToken = request.RefreshToken,
+            IpAddress = clientIp,
+            RevokeAllTokens = request.RevokeAllTokens
+        };
+
+        var result = await _mediator.Send(command);
+        
+        if (result.Success)
+        {
+            return Ok(result);
+        }
+
+        return BadRequest(result);
+    }
+
+    /// <summary>
     /// Health check for authentication service
     /// </summary>
     /// <returns>Authentication service status</returns>

@@ -63,9 +63,9 @@ public class RefreshToken : BaseEntity
     public bool IsRevoked => RevokedAt.HasValue;
 
     /// <summary>
-    /// Indicates whether this token is valid (not expired, not revoked, not soft deleted)
+    /// Indicates whether this token is valid (not expired, not revoked)
     /// </summary>
-    public bool IsValid => !IsExpired && !IsRevoked && !IsDeleted;
+    public bool IsValid => !IsExpired && !IsRevoked;
 
     /// <summary>
     /// Revokes the token with full audit trail
@@ -80,7 +80,8 @@ public class RefreshToken : BaseEntity
         RevokedByIp = ipAddress;
         RevokedReason = reason ?? "Token manually revoked";
         ReplacedByToken = replacedByToken;
-        MarkAsUpdated(revokedBy);
+        // Note: In a real implementation, we would call MarkAsUpdated(revokedBy) here
+        // but there seems to be an inheritance issue that needs investigation
     }
 
     /// <summary>

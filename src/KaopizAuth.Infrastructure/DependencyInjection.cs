@@ -1,8 +1,12 @@
 using KaopizAuth.Application.Common.Interfaces;
 using KaopizAuth.Domain.Entities;
+using KaopizAuth.Domain.Interfaces;
+using KaopizAuth.Domain.Services;
 using KaopizAuth.Infrastructure.Data;
 using KaopizAuth.Infrastructure.Data.Repositories;
 using KaopizAuth.Infrastructure.Services.Authentication;
+using KaopizAuth.Infrastructure.Services.Background;
+using KaopizAuth.Infrastructure.Services.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -25,10 +29,18 @@ public static class DependencyInjection
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
 
         // Add repositories
-        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        // Add domain services
+        services.AddScoped<IRefreshTokenDomainService, RefreshTokenDomainService>();
 
         // Add services
         services.AddScoped<IJwtTokenService, JwtTokenService>();
+
+        // Add background services
+        services.AddHostedService<TokenCleanupService>();
 
         return services;
     }
