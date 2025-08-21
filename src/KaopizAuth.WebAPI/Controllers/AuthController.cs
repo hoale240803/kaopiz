@@ -82,7 +82,8 @@ public class AuthController : ControllerBase
         {
             Email = request.Email,
             Password = request.Password,
-            RememberMe = request.RememberMe
+            RememberMe = request.RememberMe,
+            IpAddress = GetClientIpAddress()
         };
 
         var result = await _mediator.Send(command);
@@ -93,6 +94,30 @@ public class AuthController : ControllerBase
         }
 
         return BadRequest(result);
+    }
+
+    /// <summary>
+    /// Get client IP address from request
+    /// </summary>
+    /// <returns>Client IP address</returns>
+    private string GetClientIpAddress()
+    {
+        // Check for forwarded IP first (useful for reverse proxies)
+        var forwardedFor = Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(forwardedFor))
+        {
+            return forwardedFor.Split(',')[0].Trim();
+        }
+
+        // Check for real IP
+        var realIp = Request.Headers["X-Real-IP"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(realIp))
+        {
+            return realIp;
+        }
+
+        // Fall back to connection remote IP
+        return HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
     }
 
     /// <summary>

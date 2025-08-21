@@ -5,7 +5,7 @@ namespace KaopizAuth.Application.Common.Interfaces;
 /// <summary>
 /// JWT token service interface
 /// </summary>
-public interface IJwtTokenService
+public interface IJwtTokenService : IDisposable
 {
     Task<string> GenerateAccessTokenAsync(ApplicationUser user);
     string GenerateRefreshToken();
