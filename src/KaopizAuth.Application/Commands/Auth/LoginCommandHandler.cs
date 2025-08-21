@@ -71,9 +71,17 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
             var accessToken = await _jwtTokenService.GenerateAccessTokenAsync(user);
             var refreshToken = _jwtTokenService.GenerateRefreshToken();
 
-            // Update user with refresh token
-            user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // 7 days as per requirements
+            // Create refresh token entity
+            var refreshTokenEntity = RefreshToken.Create(
+                refreshToken,
+                DateTime.UtcNow.AddDays(7), // 7 days as per requirements
+                user.Id.ToString(),
+                request.IpAddress,
+                "System"
+            );
+
+            // Add to user's refresh tokens
+            user.RefreshTokens.Add(refreshTokenEntity);
             
             await _userManager.UpdateAsync(user);
 
@@ -87,7 +95,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
                 ExpiresAt = DateTime.UtcNow.AddMinutes(15), // 15 minutes as per requirements
                 User = new UserDto
                 {
-                    Id = user.Id,
+                    Id = user.Id.ToString(),
                     Email = user.Email ?? string.Empty,
                     FirstName = user.FirstName ?? string.Empty,
                     LastName = user.LastName ?? string.Empty,
