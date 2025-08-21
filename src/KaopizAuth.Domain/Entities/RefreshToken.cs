@@ -5,7 +5,7 @@ namespace KaopizAuth.Domain.Entities;
 /// <summary>
 /// Represents a refresh token for JWT authentication with enhanced audit and soft delete support
 /// </summary>
-public class RefreshToken : BaseEntity
+public class RefreshToken : BaseEntity<Guid>
 {
     /// <summary>
     /// Gets or sets the refresh token value
@@ -65,7 +65,7 @@ public class RefreshToken : BaseEntity
     /// <summary>
     /// Indicates whether this token is valid (not expired, not revoked)
     /// </summary>
-    public bool IsValid => !IsExpired && !IsRevoked;
+    public bool IsValid => !IsExpired && !IsRevoked && IsActive;
 
     /// <summary>
     /// Revokes the token with full audit trail

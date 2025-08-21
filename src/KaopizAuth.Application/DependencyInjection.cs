@@ -1,4 +1,6 @@
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace KaopizAuth.Application;
 
@@ -9,11 +11,19 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        var assembly = Assembly.GetExecutingAssembly();
+        
         // Add MediatR
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
         
         // Add AutoMapper
-        services.AddAutoMapper(typeof(DependencyInjection).Assembly);
+        services.AddAutoMapper(assembly);
+        
+        // Add FluentValidation
+        services.AddValidatorsFromAssembly(assembly);
+        
+        // Add FluentValidation
+        services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
         
         return services;
     }

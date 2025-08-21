@@ -16,6 +16,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
 
     public new DbSet<ApplicationUser> Users => Set<ApplicationUser>();
     public new DbSet<ApplicationRole> Roles => Set<ApplicationRole>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -23,7 +24,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
 
         // Apply entity configurations
         builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
-        
+
         // Configure Identity table names
         builder.Entity<ApplicationUser>().ToTable("Users");
         builder.Entity<ApplicationRole>().ToTable("Roles");
@@ -31,7 +32,23 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        // TODO: Add audit trail logic here when implementing user management (Ticket 6)
+        // Update timestamps
+        var entries = ChangeTracker
+            .Entries()
+            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified);
+
+        foreach (var entityEntry in entries)
+        {
+            if (entityEntry.Entity is ApplicationUser user)
+            {
+                if (entityEntry.State == EntityState.Added)
+                {
+                    user.CreatedAt = DateTime.UtcNow;
+                }
+                // Note: UpdatedAt is not in ApplicationUser, we use LastLoginAt for login tracking
+            }
+        }
+
         return await base.SaveChangesAsync(cancellationToken);
     }
 }
