@@ -1,0 +1,65 @@
+services:
+  kaopizauth-db:
+    image: postgres:15
+    container_name: kaopizauth-postgres
+    environment:
+      POSTGRES_DB: KaopizAuth
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - kaopizauth-network
+
+  kaopizauth-redis:
+    image: redis:7-alpine
+    container_name: kaopizauth-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - kaopizauth-network
+
+  kaopizauth-api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: kaopizauth-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=kaopizauth-db;Database=KaopizAuth;Username=postgres;Password=password
+      - ConnectionStrings__RedisConnection=kaopizauth-redis:6379
+    ports:
+      - "5000:8080"
+    depends_on:
+      - kaopizauth-db
+      - kaopizauth-redis
+    networks:
+      - kaopizauth-network
+
+  kaopizauth-webapp:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.webapp
+    container_name: kaopizauth-webapp
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:5000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - kaopizauth-api
+    networks:
+      - kaopizauth-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  kaopizauth-network:
+    driver: bridge
