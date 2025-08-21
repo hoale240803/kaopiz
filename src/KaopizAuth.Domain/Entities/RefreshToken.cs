@@ -45,7 +45,7 @@ public class RefreshToken : BaseEntity<Guid>
     /// <summary>
     /// Gets or sets the user ID this token belongs to
     /// </summary>
-    public string UserId { get; set; } = string.Empty;
+    public Guid UserId { get; set; }
 
     /// <summary>
     /// Navigation property to the user
@@ -102,7 +102,7 @@ public class RefreshToken : BaseEntity<Guid>
     /// <param name="createdByIp">IP address</param>
     /// <param name="createdBy">Who created the token</param>
     /// <returns>New RefreshToken instance</returns>
-    public static RefreshToken Create(string token, DateTime expiresAt, string userId, string? createdByIp = null, string? createdBy = null)
+    public static RefreshToken Create(string token, DateTime expiresAt, Guid userId, string? createdByIp = null, string? createdBy = null)
     {
         var refreshToken = new RefreshToken
         {
