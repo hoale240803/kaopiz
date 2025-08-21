@@ -23,7 +23,7 @@ public class RegisterCommandValidatorTests
         _contextMock = new Mock<IApplicationDbContext>();
         _userDbSetMock = new Mock<DbSet<ApplicationUser>>();
         _contextMock.Setup(x => x.Users).Returns(_userDbSetMock.Object);
-        
+
         _validator = new RegisterCommandValidator(_contextMock.Object);
     }
 

@@ -25,7 +25,7 @@ public class RegisterCommandHandlerTests
         var store = new Mock<IUserStore<ApplicationUser>>();
         _userManagerMock = new Mock<UserManager<ApplicationUser>>(store.Object, null, null, null, null, null, null, null, null);
         _loggerMock = new Mock<ILogger<RegisterCommandHandler>>();
-        
+
         _handler = new RegisterCommandHandler(_userManagerMock.Object, _loggerMock.Object);
     }
 
@@ -57,13 +57,13 @@ public class RegisterCommandHandlerTests
         result.Errors.Should().BeEmpty();
 
         _userManagerMock.Verify(x => x.CreateAsync(
-            It.Is<ApplicationUser>(u => 
+            It.Is<ApplicationUser>(u =>
                 u.Email == command.Email.ToLowerInvariant() &&
                 u.FirstName == command.FirstName.Trim() &&
                 u.LastName == command.LastName.Trim() &&
                 u.UserType == command.UserType &&
                 u.IsActive == true
-            ), 
+            ),
             command.Password), Times.Once);
     }
 
@@ -160,7 +160,7 @@ public class RegisterCommandHandlerTests
         result.Success.Should().BeTrue();
 
         _userManagerMock.Verify(x => x.CreateAsync(
-            It.Is<ApplicationUser>(u => u.UserType == userType), 
+            It.Is<ApplicationUser>(u => u.UserType == userType),
             command.Password), Times.Once);
     }
 }

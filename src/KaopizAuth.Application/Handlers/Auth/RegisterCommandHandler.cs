@@ -55,14 +55,14 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
 
             if (result.Succeeded)
             {
-                _logger.LogInformation("User registration successful for email: {Email}, UserId: {UserId}", 
+                _logger.LogInformation("User registration successful for email: {Email}, UserId: {UserId}",
                     request.Email, user.Id);
 
                 return RegisterResult.CreateSuccess(user.Id.ToString(), "User registered successfully");
             }
 
             // Log and return validation errors
-            _logger.LogWarning("User registration failed for email: {Email}. Errors: {@Errors}", 
+            _logger.LogWarning("User registration failed for email: {Email}. Errors: {@Errors}",
                 request.Email, result.Errors);
 
             var errors = result.Errors
@@ -74,7 +74,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
         catch (Exception ex)
         {
             _logger.LogError(ex, "An unexpected error occurred during user registration for email: {Email}", request.Email);
-            
+
             return RegisterResult.CreateFailure("An unexpected error occurred during registration");
         }
     }
