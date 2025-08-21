@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace KaopizAuth.Application;
@@ -14,6 +15,9 @@ public static class DependencyInjection
         
         // Add AutoMapper
         services.AddAutoMapper(typeof(DependencyInjection).Assembly);
+        
+        // Add FluentValidation
+        services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
         
         return services;
     }

@@ -3,6 +3,7 @@ using KaopizAuth.Application;
 using KaopizAuth.Domain.Entities;
 using KaopizAuth.Infrastructure;
 using KaopizAuth.Infrastructure.Data;
+using KaopizAuth.Infrastructure.Services.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -56,6 +57,10 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    // Configure JWT Bearer options after services are built
+    var serviceProvider = builder.Services.BuildServiceProvider();
+    var rsaKeyService = serviceProvider.GetRequiredService<IRsaKeyService>();
+    
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -64,7 +69,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["JWT:Issuer"],
         ValidAudience = builder.Configuration["JWT:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not configured"))),
+        IssuerSigningKey = rsaKeyService.GetRsaSecurityKey(),
         ClockSkew = TimeSpan.Zero
     };
 });

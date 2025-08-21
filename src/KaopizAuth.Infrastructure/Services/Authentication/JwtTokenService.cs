@@ -11,23 +11,24 @@ using Microsoft.IdentityModel.Tokens;
 namespace KaopizAuth.Infrastructure.Services.Authentication;
 
 /// <summary>
-/// JWT token service implementation
+/// JWT token service implementation with RS256 algorithm
 /// </summary>
 public class JwtTokenService : IJwtTokenService
 {
     private readonly IConfiguration _configuration;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IRsaKeyService _rsaKeyService;
 
-    public JwtTokenService(IConfiguration configuration, UserManager<ApplicationUser> userManager)
+    public JwtTokenService(IConfiguration configuration, UserManager<ApplicationUser> userManager, IRsaKeyService rsaKeyService)
     {
         _configuration = configuration;
         _userManager = userManager;
+        _rsaKeyService = rsaKeyService;
     }
 
     public async Task<string> GenerateAccessTokenAsync(ApplicationUser user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.UTF8.GetBytes(_configuration["JWT:SecretKey"] ?? throw new InvalidOperationException("JWT Secret Key not configured"));
         
         var roles = await _userManager.GetRolesAsync(user);
         var claims = new List<Claim>
@@ -36,7 +37,8 @@ public class JwtTokenService : IJwtTokenService
             new(ClaimTypes.Name, user.UserName ?? string.Empty),
             new(ClaimTypes.Email, user.Email ?? string.Empty),
             new("firstName", user.FirstName ?? string.Empty),
-            new("lastName", user.LastName ?? string.Empty)
+            new("lastName", user.LastName ?? string.Empty),
+            new("userType", "User") // Default user type, can be enhanced based on business logic
         };
 
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
@@ -45,7 +47,7 @@ public class JwtTokenService : IJwtTokenService
         {
             Subject = new ClaimsIdentity(claims),
             Expires = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["JWT:AccessTokenExpirationMinutes"] ?? "15")),
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+            SigningCredentials = new SigningCredentials(_rsaKeyService.GetRsaSecurityKey(), SecurityAlgorithms.RsaSha256),
             Issuer = _configuration["JWT:Issuer"],
             Audience = _configuration["JWT:Audience"]
         };
@@ -67,12 +69,11 @@ public class JwtTokenService : IJwtTokenService
         try
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_configuration["JWT:SecretKey"] ?? throw new InvalidOperationException("JWT Secret Key not configured"));
 
             var validationParameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(key),
+                IssuerSigningKey = _rsaKeyService.GetRsaSecurityKey(),
                 ValidateIssuer = true,
                 ValidIssuer = _configuration["JWT:Issuer"],
                 ValidateAudience = true,
@@ -103,5 +104,11 @@ public class JwtTokenService : IJwtTokenService
         {
             return Task.FromResult<string?>(null);
         }
+    }
+
+    public void Dispose()
+    {
+        // RSA is managed by the IRsaKeyService
+        GC.SuppressFinalize(this);
     }
 }

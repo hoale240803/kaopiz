@@ -28,6 +28,7 @@ public static class DependencyInjection
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
         // Add services
+        services.AddSingleton<IRsaKeyService, RsaKeyService>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
 
         return services;
