@@ -44,7 +44,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
         {
             // Get the refresh token from database
             var refreshToken = await _refreshTokenRepository.GetByTokenAsync(request.RefreshToken, cancellationToken);
-            
+
             if (refreshToken == null)
             {
                 _logger.LogWarning("Refresh token not found: {Token}", request.RefreshToken[..8] + "...");
@@ -75,14 +75,14 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
 
             // Revoke the old refresh token
             _refreshTokenDomainService.RevokeRefreshToken(
-                refreshToken, 
-                request.IpAddress ?? "Unknown", 
+                refreshToken,
+                request.IpAddress ?? "Unknown",
                 "Token used for refresh");
 
             // Generate new tokens
             var newAccessToken = await _jwtTokenService.GenerateAccessTokenAsync(user);
             var newRefreshToken = _refreshTokenDomainService.GenerateRefreshToken(
-                user.Id, 
+                user.Id,
                 request.IpAddress ?? "Unknown");
 
             // Save the new refresh token

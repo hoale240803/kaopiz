@@ -19,7 +19,7 @@ public class UnitOfWork : IUnitOfWork
     // For now, implement a simple Users repository that throws NotImplementedException
     // This will be implemented in the User management tickets
     public IUserRepository Users => throw new NotImplementedException("User repository will be implemented in ticket 6");
-    
+
     public IRefreshTokenRepository RefreshTokens => _refreshTokens ??= new RefreshTokenRepository(_context);
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

@@ -31,8 +31,8 @@ public class RefreshTokenRepository : Repository<RefreshToken, Guid>, IRefreshTo
     public async Task<IEnumerable<RefreshToken>> GetActiveTokensByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await _context.Set<RefreshToken>()
-            .Where(rt => rt.UserId == userId.ToString() && 
-                        !rt.RevokedAt.HasValue && 
+            .Where(rt => rt.UserId == userId.ToString() &&
+                        !rt.RevokedAt.HasValue &&
                         rt.ExpiresAt > DateTime.UtcNow)
             .OrderByDescending(rt => rt.ExpiresAt)
             .ToListAsync(cancellationToken);
@@ -41,7 +41,7 @@ public class RefreshTokenRepository : Repository<RefreshToken, Guid>, IRefreshTo
     public async Task<IEnumerable<RefreshToken>> GetExpiredTokensAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Set<RefreshToken>()
-            .Where(rt => rt.ExpiresAt <= DateTime.UtcNow && 
+            .Where(rt => rt.ExpiresAt <= DateTime.UtcNow &&
                         !rt.RevokedAt.HasValue)
             .ToListAsync(cancellationToken);
     }

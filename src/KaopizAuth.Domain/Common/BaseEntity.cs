@@ -48,7 +48,7 @@ public interface ISoftDeletableEntity
 /// Base entity class with common properties including soft delete and audit trail
 /// </summary>
 /// <typeparam name="TKey">The type of the primary key</typeparam>
-public abstract class BaseEntity<TKey> : IAuditableEntity, ISoftDeletableEntity 
+public abstract class BaseEntity<TKey> : IAuditableEntity, ISoftDeletableEntity
     where TKey : IEquatable<TKey>
 {
     private readonly List<IDomainEvent> _domainEvents = new();
@@ -132,10 +132,10 @@ public abstract class BaseEntity<TKey> : IAuditableEntity, ISoftDeletableEntity
     /// <summary>
     /// Gets or sets whether this entity is active (not soft deleted)
     /// </summary>
-    public bool IsActive 
-    { 
+    public bool IsActive
+    {
         get => !IsDeleted;
-        set 
+        set
         {
             if (!value && !IsDeleted)
             {

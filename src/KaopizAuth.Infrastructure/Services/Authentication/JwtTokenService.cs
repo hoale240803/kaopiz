@@ -29,7 +29,7 @@ public class JwtTokenService : IJwtTokenService
     public async Task<string> GenerateAccessTokenAsync(ApplicationUser user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        
+
         var roles = await _userManager.GetRolesAsync(user);
         var claims = new List<Claim>
         {
@@ -97,7 +97,7 @@ public class JwtTokenService : IJwtTokenService
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var jsonToken = tokenHandler.ReadJwtToken(token);
-            
+
             return Task.FromResult(jsonToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value);
         }
         catch

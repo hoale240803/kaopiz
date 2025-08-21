@@ -49,19 +49,19 @@ public class TokenCleanupService : BackgroundService
         {
             // Get expired tokens
             var expiredTokens = await refreshTokenRepository.GetExpiredTokensAsync();
-            
+
             if (expiredTokens.Any())
             {
                 // Clean up expired tokens
                 var cleanedCount = refreshTokenDomainService.CleanupExpiredTokens(expiredTokens, "TokenCleanupService");
-                
+
                 // Remove very old tokens (expired for more than 30 days)
                 var removedCount = await refreshTokenRepository.RemoveExpiredTokensAsync();
-                
+
                 // Save changes
                 await unitOfWork.SaveChangesAsync();
-                
-                _logger.LogInformation("Token cleanup completed. Cleaned: {CleanedCount}, Removed: {RemovedCount}", 
+
+                _logger.LogInformation("Token cleanup completed. Cleaned: {CleanedCount}, Removed: {RemovedCount}",
                     cleanedCount, removedCount);
             }
             else

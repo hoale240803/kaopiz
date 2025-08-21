@@ -40,7 +40,7 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, ApiResponse<b
 
             // Get the refresh token from database
             var refreshToken = await _refreshTokenRepository.GetByTokenAsync(request.RefreshToken, cancellationToken);
-            
+
             if (refreshToken == null)
             {
                 _logger.LogWarning("Logout attempt with non-existent refresh token: {Token}", request.RefreshToken[..8] + "...");
@@ -54,8 +54,8 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, ApiResponse<b
                 // Revoke all tokens for the user
                 var userTokens = await _refreshTokenRepository.GetActiveTokensByUserIdAsync(Guid.Parse(userId), cancellationToken);
                 _refreshTokenDomainService.RevokeAllUserTokens(
-                    userTokens, 
-                    request.IpAddress ?? "Unknown", 
+                    userTokens,
+                    request.IpAddress ?? "Unknown",
                     "User logout - all tokens revoked");
 
                 _logger.LogInformation("All tokens revoked for user {UserId} during logout", userId);
@@ -64,8 +64,8 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, ApiResponse<b
             {
                 // Revoke only the specific token
                 _refreshTokenDomainService.RevokeRefreshToken(
-                    refreshToken, 
-                    request.IpAddress ?? "Unknown", 
+                    refreshToken,
+                    request.IpAddress ?? "Unknown",
                     "User logout");
 
                 _logger.LogInformation("Token revoked for user {UserId} during logout", userId);

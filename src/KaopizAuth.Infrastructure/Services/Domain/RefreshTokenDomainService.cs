@@ -75,7 +75,7 @@ public class RefreshTokenDomainService : IRefreshTokenDomainService
             return 0;
 
         var expiredTokens = refreshTokens.Where(t => t.IsExpired && !t.IsRevoked).ToList();
-        
+
         foreach (var token in expiredTokens)
         {
             RevokeRefreshToken(token, ipAddress, "Token expired - automatic cleanup");
@@ -99,7 +99,7 @@ public class RefreshTokenDomainService : IRefreshTokenDomainService
             return Enumerable.Empty<RefreshToken>();
 
         var validTokens = activeTokens.Where(t => t.IsValid).ToList();
-        
+
         if (validTokens.Count <= maxAllowedTokens)
             return Enumerable.Empty<RefreshToken>();
 

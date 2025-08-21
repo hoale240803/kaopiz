@@ -9,8 +9,8 @@ namespace KaopizAuth.Infrastructure.Data.Repositories;
 /// </summary>
 /// <typeparam name="T">Entity type</typeparam>
 /// <typeparam name="TKey">Primary key type</typeparam>
-public class Repository<T, TKey> : IRepository<T, TKey> 
-    where T : class 
+public class Repository<T, TKey> : IRepository<T, TKey>
+    where T : class
     where TKey : IEquatable<TKey>
 {
     protected readonly ApplicationDbContext _context;
