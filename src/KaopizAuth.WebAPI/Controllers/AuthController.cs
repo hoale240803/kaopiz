@@ -1,5 +1,7 @@
 using KaopizAuth.Application.Commands.Auth;
 using KaopizAuth.Application.Common.Models;
+using KaopizAuth.WebAPI.Models.Requests;
+using KaopizAuth.WebAPI.Models.Responses;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,10 +15,59 @@ namespace KaopizAuth.WebAPI.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(IMediator mediator)
+    public AuthController(IMediator mediator, ILogger<AuthController> logger)
     {
         _mediator = mediator;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// Register a new user
+    /// </summary>
+    /// <param name="request">Registration details</param>
+    /// <returns>Registration result</returns>
+    [HttpPost("register")]
+    [ProducesResponseType(typeof(ApiResponse<RegisterResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    {
+        try
+        {
+            var command = new RegisterCommand
+            {
+                Email = request.Email,
+                Password = request.Password,
+                ConfirmPassword = request.ConfirmPassword,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                UserType = request.UserType
+            };
+
+            var result = await _mediator.Send(command);
+
+            if (result.Success)
+            {
+                var response = new RegisterResponse
+                {
+                    UserId = result.UserId,
+                    Message = result.Message
+                };
+
+                return CreatedAtAction(nameof(Register), 
+                    ApiResponse<RegisterResponse>.SuccessResult(response, "User registered successfully"));
+            }
+
+            return BadRequest(ApiResponse.FailureResult(result.Message, result.Errors));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred during user registration");
+            
+            return StatusCode(500, ApiResponse.FailureResult("An unexpected error occurred"));
+        }
     }
 
     /// <summary>
