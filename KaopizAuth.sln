@@ -1,0 +1,48 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2288CE5B-5551-498A-88B8-979A0ABE20C4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaopizAuth.Domain", "src\KaopizAuth.Domain\KaopizAuth.Domain.csproj", "{5AF685D9-DC42-4A0B-A667-6662AE07BCC0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaopizAuth.Application", "src\KaopizAuth.Application\KaopizAuth.Application.csproj", "{62EF0E7F-3545-4609-8F1B-35807BA8D841}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaopizAuth.Infrastructure", "src\KaopizAuth.Infrastructure\KaopizAuth.Infrastructure.csproj", "{E48EC1E6-2BF1-4095-B690-DD2BE9EB8CDB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaopizAuth.WebAPI", "src\KaopizAuth.WebAPI\KaopizAuth.WebAPI.csproj", "{6450F788-4385-40AE-AD2A-C0C86419E0D4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5AF685D9-DC42-4A0B-A667-6662AE07BCC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5AF685D9-DC42-4A0B-A667-6662AE07BCC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5AF685D9-DC42-4A0B-A667-6662AE07BCC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5AF685D9-DC42-4A0B-A667-6662AE07BCC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62EF0E7F-3545-4609-8F1B-35807BA8D841}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62EF0E7F-3545-4609-8F1B-35807BA8D841}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62EF0E7F-3545-4609-8F1B-35807BA8D841}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62EF0E7F-3545-4609-8F1B-35807BA8D841}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E48EC1E6-2BF1-4095-B690-DD2BE9EB8CDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E48EC1E6-2BF1-4095-B690-DD2BE9EB8CDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E48EC1E6-2BF1-4095-B690-DD2BE9EB8CDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E48EC1E6-2BF1-4095-B690-DD2BE9EB8CDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6450F788-4385-40AE-AD2A-C0C86419E0D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6450F788-4385-40AE-AD2A-C0C86419E0D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6450F788-4385-40AE-AD2A-C0C86419E0D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6450F788-4385-40AE-AD2A-C0C86419E0D4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5AF685D9-DC42-4A0B-A667-6662AE07BCC0} = {2288CE5B-5551-498A-88B8-979A0ABE20C4}
+		{62EF0E7F-3545-4609-8F1B-35807BA8D841} = {2288CE5B-5551-498A-88B8-979A0ABE20C4}
+		{E48EC1E6-2BF1-4095-B690-DD2BE9EB8CDB} = {2288CE5B-5551-498A-88B8-979A0ABE20C4}
+		{6450F788-4385-40AE-AD2A-C0C86419E0D4} = {2288CE5B-5551-498A-88B8-979A0ABE20C4}
+	EndGlobalSection
+EndGlobal

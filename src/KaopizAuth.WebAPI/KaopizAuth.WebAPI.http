@@ -1,0 +1,6 @@
+@KaopizAuth.WebAPI_HostAddress = http://localhost:5006
+
+GET {{KaopizAuth.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
