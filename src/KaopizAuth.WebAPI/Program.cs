@@ -4,6 +4,7 @@ using KaopizAuth.Domain.Entities;
 using KaopizAuth.Infrastructure;
 using KaopizAuth.Infrastructure.Data;
 using KaopizAuth.Infrastructure.Services.Authentication;
+using KaopizAuth.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -125,6 +126,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Add rate limiting middleware
+app.UseMiddleware<LoginRateLimitingMiddleware>();
 
 app.UseCors("DefaultPolicy");
 

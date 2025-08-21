@@ -37,14 +37,16 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
             var user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null)
             {
-                _logger.LogWarning("Login attempt failed: User not found for email {Email}", request.Email);
+                _logger.LogWarning("Login attempt failed: User not found for email {Email} from IP {IpAddress}", 
+                    request.Email, request.IpAddress ?? "Unknown");
                 return ApiResponse<LoginResponse>.FailureResult("Invalid email or password");
             }
 
             // Check if user is active
             if (!user.IsActive)
             {
-                _logger.LogWarning("Login attempt failed: User account is inactive for email {Email}", request.Email);
+                _logger.LogWarning("Login attempt failed: User account is inactive for email {Email} from IP {IpAddress}", 
+                    request.Email, request.IpAddress ?? "Unknown");
                 return ApiResponse<LoginResponse>.FailureResult("Account is inactive");
             }
 
@@ -55,11 +57,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
             {
                 if (result.IsLockedOut)
                 {
-                    _logger.LogWarning("Login attempt failed: Account locked out for email {Email}", request.Email);
+                    _logger.LogWarning("Login attempt failed: Account locked out for email {Email} from IP {IpAddress}", 
+                        request.Email, request.IpAddress ?? "Unknown");
                     return ApiResponse<LoginResponse>.FailureResult("Account is locked out due to too many failed attempts");
                 }
 
-                _logger.LogWarning("Login attempt failed: Invalid password for email {Email}", request.Email);
+                _logger.LogWarning("Login attempt failed: Invalid password for email {Email} from IP {IpAddress}", 
+                    request.Email, request.IpAddress ?? "Unknown");
                 return ApiResponse<LoginResponse>.FailureResult("Invalid email or password");
             }
 
@@ -92,12 +96,14 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
                 }
             };
 
-            _logger.LogInformation("Login successful for user {Email}", request.Email);
+            _logger.LogInformation("Login successful for user {Email} from IP {IpAddress}", 
+                request.Email, request.IpAddress ?? "Unknown");
             return ApiResponse<LoginResponse>.SuccessResult(response, "Login successful");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred during login for email {Email}", request.Email);
+            _logger.LogError(ex, "An error occurred during login for email {Email} from IP {IpAddress}", 
+                request.Email, request.IpAddress ?? "Unknown");
             return ApiResponse<LoginResponse>.FailureResult("An error occurred during login");
         }
     }
