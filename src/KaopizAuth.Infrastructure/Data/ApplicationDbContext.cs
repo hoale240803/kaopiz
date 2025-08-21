@@ -8,7 +8,7 @@ namespace KaopizAuth.Infrastructure.Data;
 /// <summary>
 /// Application database context
 /// </summary>
-public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>, IApplicationDbContext
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>, IApplicationDbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
@@ -16,6 +16,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
 
     public new DbSet<ApplicationUser> Users => Set<ApplicationUser>();
     public new DbSet<ApplicationRole> Roles => Set<ApplicationRole>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -44,10 +45,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 {
                     user.CreatedAt = DateTime.UtcNow;
                 }
-                else if (entityEntry.State == EntityState.Modified)
-                {
-                    user.UpdatedAt = DateTime.UtcNow;
-                }
+                // Note: UpdatedAt is not in ApplicationUser, we use LastLoginAt for login tracking
             }
         }
 
