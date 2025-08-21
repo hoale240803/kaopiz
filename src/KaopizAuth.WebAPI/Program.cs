@@ -1,10 +1,8 @@
 using System.Text;
 using KaopizAuth.Application;
-using KaopizAuth.Domain.Entities;
 using KaopizAuth.Infrastructure;
 using KaopizAuth.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 
@@ -26,26 +24,26 @@ builder.Services.AddControllers();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// Add Identity (moved from Infrastructure to resolve dependency issues)
-builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
-{
-    // Password settings
-    options.Password.RequireDigit = true;
-    options.Password.RequiredLength = 8;
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireLowercase = true;
+// TODO: Add Identity when Domain entities are implemented
+// builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
+// {
+//     // Password settings
+//     options.Password.RequireDigit = true;
+//     options.Password.RequiredLength = 8;
+//     options.Password.RequireNonAlphanumeric = false;
+//     options.Password.RequireUppercase = true;
+//     options.Password.RequireLowercase = true;
 
-    // User settings
-    options.User.RequireUniqueEmail = true;
+//     // User settings
+//     options.User.RequireUniqueEmail = true;
     
-    // Lockout settings
-    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-    options.Lockout.MaxFailedAccessAttempts = 5;
-    options.Lockout.AllowedForNewUsers = true;
-})
-.AddEntityFrameworkStores<ApplicationDbContext>()
-.AddDefaultTokenProviders();
+//     // Lockout settings
+//     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+//     options.Lockout.MaxFailedAccessAttempts = 5;
+//     options.Lockout.AllowedForNewUsers = true;
+// })
+// .AddEntityFrameworkStores<ApplicationDbContext>()
+// .AddDefaultTokenProviders();
 
 // Add JWT Authentication
 builder.Services.AddAuthentication(options =>

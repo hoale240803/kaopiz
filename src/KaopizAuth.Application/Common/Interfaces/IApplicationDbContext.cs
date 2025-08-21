@@ -1,4 +1,3 @@
-using KaopizAuth.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace KaopizAuth.Application.Common.Interfaces;
@@ -8,8 +7,9 @@ namespace KaopizAuth.Application.Common.Interfaces;
 /// </summary>
 public interface IApplicationDbContext
 {
-    DbSet<ApplicationUser> Users { get; }
-    DbSet<ApplicationRole> Roles { get; }
+    // TODO: Add DbSets when Domain entities are implemented
+    // DbSet<ApplicationUser> Users { get; }
+    // DbSet<ApplicationRole> Roles { get; }
     
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

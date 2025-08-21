@@ -3,8 +3,6 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using KaopizAuth.Application.Common.Interfaces;
-using KaopizAuth.Domain.Entities;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -16,43 +14,45 @@ namespace KaopizAuth.Infrastructure.Services.Authentication;
 public class JwtTokenService : IJwtTokenService
 {
     private readonly IConfiguration _configuration;
-    private readonly UserManager<ApplicationUser> _userManager;
+    // TODO: Add UserManager when Domain entities are implemented
+    // private readonly UserManager<ApplicationUser> _userManager;
 
-    public JwtTokenService(IConfiguration configuration, UserManager<ApplicationUser> userManager)
+    public JwtTokenService(IConfiguration configuration)
     {
         _configuration = configuration;
-        _userManager = userManager;
+        // _userManager = userManager;
     }
 
-    public async Task<string> GenerateAccessTokenAsync(ApplicationUser user)
-    {
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.UTF8.GetBytes(_configuration["JWT:SecretKey"] ?? throw new InvalidOperationException("JWT Secret Key not configured"));
-        
-        var roles = await _userManager.GetRolesAsync(user);
-        var claims = new List<Claim>
-        {
-            new(ClaimTypes.NameIdentifier, user.Id),
-            new(ClaimTypes.Name, user.UserName ?? string.Empty),
-            new(ClaimTypes.Email, user.Email ?? string.Empty),
-            new("firstName", user.FirstName ?? string.Empty),
-            new("lastName", user.LastName ?? string.Empty)
-        };
+    // TODO: Implement when Domain entities are available
+    // public async Task<string> GenerateAccessTokenAsync(ApplicationUser user)
+    // {
+    //     var tokenHandler = new JwtSecurityTokenHandler();
+    //     var key = Encoding.UTF8.GetBytes(_configuration["JWT:SecretKey"] ?? throw new InvalidOperationException("JWT Secret Key not configured"));
+    //     
+    //     var roles = await _userManager.GetRolesAsync(user);
+    //     var claims = new List<Claim>
+    //     {
+    //         new(ClaimTypes.NameIdentifier, user.Id),
+    //         new(ClaimTypes.Name, user.UserName ?? string.Empty),
+    //         new(ClaimTypes.Email, user.Email ?? string.Empty),
+    //         new("firstName", user.FirstName ?? string.Empty),
+    //         new("lastName", user.LastName ?? string.Empty)
+    //     };
 
-        claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+    //     claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["JWT:AccessTokenExpirationMinutes"] ?? "15")),
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-            Issuer = _configuration["JWT:Issuer"],
-            Audience = _configuration["JWT:Audience"]
-        };
+    //     var tokenDescriptor = new SecurityTokenDescriptor
+    //     {
+    //         Subject = new ClaimsIdentity(claims),
+    //         Expires = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["JWT:AccessTokenExpirationMinutes"] ?? "15")),
+    //         SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+    //         Issuer = _configuration["JWT:Issuer"],
+    //         Audience = _configuration["JWT:Audience"]
+    //     };
 
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
-    }
+    //     var token = tokenHandler.CreateToken(tokenDescriptor);
+    //     return tokenHandler.WriteToken(token);
+    // }
 
     public string GenerateRefreshToken()
     {

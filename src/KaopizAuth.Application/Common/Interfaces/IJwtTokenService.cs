@@ -1,5 +1,3 @@
-using KaopizAuth.Domain.Entities;
-
 namespace KaopizAuth.Application.Common.Interfaces;
 
 /// <summary>
@@ -7,7 +5,8 @@ namespace KaopizAuth.Application.Common.Interfaces;
 /// </summary>
 public interface IJwtTokenService
 {
-    Task<string> GenerateAccessTokenAsync(ApplicationUser user);
+    // TODO: Add methods when Domain entities are implemented
+    // Task<string> GenerateAccessTokenAsync(ApplicationUser user);
     string GenerateRefreshToken();
     Task<bool> ValidateTokenAsync(string token);
     Task<string?> GetUserIdFromTokenAsync(string token);

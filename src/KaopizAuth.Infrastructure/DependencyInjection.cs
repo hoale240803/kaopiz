@@ -1,9 +1,7 @@
 using KaopizAuth.Application.Common.Interfaces;
-using KaopizAuth.Domain.Entities;
 using KaopizAuth.Infrastructure.Data;
 using KaopizAuth.Infrastructure.Data.Repositories;
 using KaopizAuth.Infrastructure.Services.Authentication;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
