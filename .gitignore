@@ -672,6 +672,33 @@ secrets/
 *.secret
 
 # ===========================================
+# Production Deployment Files
+# ===========================================
+
+# Environment files with actual values
+.env.production
+.env.staging
+.env.local
+
+# SSL certificates and keys
+docker/ssl/
+ssl/
+
+# Backup files
+/backups/
+*.backup
+*.sql.gz
+
+# Production logs
+/logs/
+*.log
+
+# Docker volumes and persistent data
+/data/
+/postgres_data/
+/redis_data/
+
+# ===========================================
 # Build & Deployment
 # ===========================================
 
