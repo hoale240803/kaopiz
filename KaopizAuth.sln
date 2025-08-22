@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaopizAuth.IntegrationTests
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaopizAuth.ArchitectureTests", "tests\KaopizAuth.ArchitectureTests\KaopizAuth.ArchitectureTests.csproj", "{980C6695-5DF7-43C0-BBAD-6880938F00E5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaopizAuth.PerformanceTests", "tests\KaopizAuth.PerformanceTests\KaopizAuth.PerformanceTests.csproj", "{A1B2C3D4-5E6F-7890-ABCD-EF1234567890}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,10 @@ Global
 		{980C6695-5DF7-43C0-BBAD-6880938F00E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{980C6695-5DF7-43C0-BBAD-6880938F00E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{980C6695-5DF7-43C0-BBAD-6880938F00E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-5E6F-7890-ABCD-EF1234567890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-5E6F-7890-ABCD-EF1234567890}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-5E6F-7890-ABCD-EF1234567890}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-5E6F-7890-ABCD-EF1234567890}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5AF685D9-DC42-4A0B-A667-6662AE07BCC0} = {2288CE5B-5551-498A-88B8-979A0ABE20C4}
@@ -60,5 +66,6 @@ Global
 		{6450F788-4385-40AE-AD2A-C0C86419E0D4} = {2288CE5B-5551-498A-88B8-979A0ABE20C4}
 		{FC968A0A-85AE-48AA-979C-6F0536011C7C} = {7609A940-362C-47D1-BEE1-61DCD3DFA543}
 		{980C6695-5DF7-43C0-BBAD-6880938F00E5} = {7609A940-362C-47D1-BEE1-61DCD3DFA543}
+		{A1B2C3D4-5E6F-7890-ABCD-EF1234567890} = {7609A940-362C-47D1-BEE1-61DCD3DFA543}
 	EndGlobalSection
 EndGlobal
