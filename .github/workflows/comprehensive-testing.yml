@@ -1,0 +1,218 @@
+name: Comprehensive Testing Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  NODE_VERSION: '18'
+
+jobs:
+  unit-and-architecture-tests:
+    runs-on: ubuntu-latest
+    name: Unit & Architecture Tests
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore KaopizAuth.sln
+    
+    - name: Build solution
+      run: dotnet build KaopizAuth.sln --configuration Release --no-restore
+    
+    - name: Run Unit Tests
+      run: |
+        dotnet test tests/KaopizAuth.UnitTests/KaopizAuth.UnitTests.csproj \
+          --configuration Release \
+          --no-build \
+          --logger "trx;LogFileName=unit-tests.trx" \
+          --results-directory ./TestResults \
+          --collect:"XPlat Code Coverage"
+    
+    - name: Run Architecture Tests
+      run: |
+        dotnet test tests/KaopizAuth.ArchitectureTests/KaopizAuth.ArchitectureTests.csproj \
+          --configuration Release \
+          --no-build \
+          --logger "trx;LogFileName=architecture-tests.trx" \
+          --results-directory ./TestResults
+    
+    - name: Generate Code Coverage Report
+      run: |
+        dotnet tool install -g dotnet-reportgenerator-globaltool
+        reportgenerator \
+          -reports:"TestResults/*/coverage.cobertura.xml" \
+          -targetdir:"TestResults/CoverageReport" \
+          -reporttypes:"Html;Cobertura;JsonSummary"
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: unit-architecture-test-results
+        path: TestResults/
+    
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        files: TestResults/CoverageReport/Cobertura.xml
+        flags: unittests
+        name: codecov-umbrella
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    name: Integration Tests
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_USER: test
+          POSTGRES_DB: kaopizauth_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore KaopizAuth.sln
+    
+    - name: Build solution
+      run: dotnet build KaopizAuth.sln --configuration Release --no-restore
+    
+    - name: Run Integration Tests
+      run: |
+        dotnet test tests/KaopizAuth.IntegrationTests/KaopizAuth.IntegrationTests.csproj \
+          --configuration Release \
+          --no-build \
+          --logger "trx;LogFileName=integration-tests.trx" \
+          --results-directory ./TestResults \
+          --collect:"XPlat Code Coverage"
+      env:
+        ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=kaopizauth_test;Username=test;Password=test"
+        ConnectionStrings__Redis: "localhost:6379"
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: integration-test-results
+        path: TestResults/
+
+  performance-tests:
+    runs-on: ubuntu-latest
+    name: Performance Tests
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore KaopizAuth.sln
+    
+    - name: Build solution
+      run: dotnet build KaopizAuth.sln --configuration Release --no-restore
+    
+    - name: Run Performance Tests
+      run: |
+        dotnet test tests/KaopizAuth.PerformanceTests/KaopizAuth.PerformanceTests.csproj \
+          --configuration Release \
+          --no-build \
+          --logger "trx;LogFileName=performance-tests.trx" \
+          --results-directory ./TestResults
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: performance-test-results
+        path: TestResults/
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    name: E2E Tests
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: tests/KaopizAuth.E2ETests/package-lock.json
+    
+    - name: Restore .NET dependencies
+      run: dotnet restore KaopizAuth.sln
+    
+    - name: Build solution
+      run: dotnet build KaopizAuth.sln --configuration Release --no-restore
+    
+    - name: Install Playwright dependencies
+      working-directory: tests/KaopizAuth.E2ETests
+      run: |
+        npm ci
+        npx playwright install --with-deps
+    
+    - name: Start application
+      run: |
+        dotnet run --project src/KaopizAuth.WebAPI --urls "https://localhost:5001" &
+        sleep 10
+    
+    - name: Run E2E tests
+      working-directory: tests/KaopizAuth.E2ETests
+      run: npm test
+    
+    - name: Upload E2E test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: e2e-test-results
+        path: tests/KaopizAuth.E2ETests/test-results/
+    
+    - name: Upload Playwright report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report
+        path: tests/KaopizAuth.E2ETests/playwright-report/

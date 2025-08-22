@@ -1,3 +1,4 @@
+using KaopizAuth.Application.Common.Interfaces;
 using KaopizAuth.Domain.Entities;
 using KaopizAuth.Domain.Events;
 using KaopizAuth.Domain.Services;
@@ -12,24 +13,37 @@ namespace KaopizAuth.Infrastructure.Services.Domain;
 public class RefreshTokenDomainService : IRefreshTokenDomainService
 {
     private readonly IConfiguration _configuration;
+    private readonly IDeviceFingerprintService _deviceFingerprintService;
 
-    public RefreshTokenDomainService(IConfiguration configuration)
+    public RefreshTokenDomainService(IConfiguration configuration, IDeviceFingerprintService deviceFingerprintService)
     {
         _configuration = configuration;
+        _deviceFingerprintService = deviceFingerprintService;
     }
 
-    public RefreshToken GenerateRefreshToken(Guid userId, string ipAddress)
+    public RefreshToken GenerateRefreshToken(Guid userId, string ipAddress, bool rememberMe = false, string? userAgent = null)
     {
         var token = GenerateSecureToken();
-        var expirationDays = int.Parse(_configuration["JWT:RefreshTokenExpirationDays"] ?? "7");
+        
+        // Set expiration based on Remember Me flag
+        var expirationDays = rememberMe 
+            ? int.Parse(_configuration["JWT:PersistentTokenExpirationDays"] ?? "30") // 30 days for persistent sessions
+            : int.Parse(_configuration["JWT:RefreshTokenExpirationDays"] ?? "7");    // 7 days for regular sessions
+            
         var expiresAt = DateTime.UtcNow.AddDays(expirationDays);
+        
+        // Generate device fingerprint for security
+        var deviceFingerprint = _deviceFingerprintService.GenerateFingerprint(ipAddress, userAgent);
 
         var refreshToken = RefreshToken.Create(
             token: token,
             expiresAt: expiresAt,
             userId: userId.ToString(),
             createdByIp: ipAddress,
-            createdBy: "System"
+            createdBy: "System",
+            userAgent: userAgent,
+            deviceFingerprint: deviceFingerprint,
+            isPersistent: rememberMe
         );
 
         // TODO: Add domain event when inheritance issues are resolved
