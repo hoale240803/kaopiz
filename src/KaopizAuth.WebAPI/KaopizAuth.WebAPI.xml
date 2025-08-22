@@ -1,0 +1,275 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>KaopizAuth.WebAPI</name>
+    </assembly>
+    <members>
+        <member name="T:KaopizAuth.WebAPI.Controllers.AuthController">
+            <summary>
+            Authentication controller for user registration, login, logout, and token refresh operations
+            </summary>
+            <remarks>
+            This controller handles all authentication-related operations including:
+            - User registration with email verification
+            - User login with JWT token generation
+            - Token refresh for maintaining authentication
+            - User logout with token revocation
+            
+            All endpoints return consistent API responses with success/failure status and error details.
+            Rate limiting is applied to prevent abuse, especially on login endpoints.
+            </remarks>
+        </member>
+        <member name="M:KaopizAuth.WebAPI.Controllers.AuthController.Register(KaopizAuth.WebAPI.Models.Requests.RegisterRequest)">
+            <summary>
+            Register a new user account
+            </summary>
+            <param name="request">User registration details including email, password, and personal information</param>
+            <returns>Registration result with user ID and confirmation message</returns>
+            <remarks>
+            Creates a new user account with the provided information. 
+            
+            **Requirements:**
+            - Valid email address (will be used as username)
+            - Password meeting security requirements (8+ chars, uppercase, lowercase, digit)
+            - Matching password confirmation
+            - First and last name
+            
+            **Example request:**
+            ```json
+            {
+              "email": "john.doe@example.com",
+              "password": "SecurePass123!",
+              "confirmPassword": "SecurePass123!",
+              "firstName": "John",
+              "lastName": "Doe",
+              "userType": "User"
+            }
+            ```
+            
+            **Success Response Example:**
+            ```json
+            {
+              "success": true,
+              "message": "User registered successfully",
+              "data": {
+                "userId": "123e4567-e89b-12d3-a456-426614174000",
+                "message": "Registration completed. Please check your email for verification."
+              },
+              "errors": []
+            }
+            ```
+            </remarks>
+            <response code="201">User successfully registered</response>
+            <response code="400">Invalid request data or validation errors</response>
+            <response code="409">User already exists with this email</response>
+            <response code="500">Internal server error</response>
+        </member>
+        <member name="M:KaopizAuth.WebAPI.Controllers.AuthController.Login(KaopizAuth.Application.Common.Models.LoginRequest)">
+            <summary>
+            Authenticate user and generate access tokens
+            </summary>
+            <param name="request">Login credentials including email and password</param>
+            <returns>Authentication result with JWT access token, refresh token, and user information</returns>
+            <remarks>
+            Authenticates a user with email and password, returning JWT tokens for API access.
+            
+            **Rate Limiting:** 5 attempts per minute per IP address to prevent brute force attacks.
+            
+            **Security Features:**
+            - Account lockout after 5 failed attempts
+            - IP address tracking for audit logs
+            - Secure refresh token generation
+            - Short-lived access tokens (15 minutes)
+            
+            **Example request:**
+            ```json
+            {
+              "email": "john.doe@example.com",
+              "password": "SecurePass123!",
+              "rememberMe": false
+            }
+            ```
+            
+            **Success Response Example:**
+            ```json
+            {
+              "success": true,
+              "message": "Login successful",
+              "data": {
+                "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                "refreshToken": "b8c9d4e5f6g7h8i9j0k1l2m3n4o5p6q7...",
+                "expiresAt": "2025-08-21T12:15:00Z",
+                "user": {
+                  "id": "123e4567-e89b-12d3-a456-426614174000",
+                  "email": "john.doe@example.com",
+                  "firstName": "John",
+                  "lastName": "Doe",
+                  "fullName": "John Doe",
+                  "roles": ["User"]
+                }
+              },
+              "errors": []
+            }
+            ```
+            </remarks>
+            <response code="200">Login successful with tokens</response>
+            <response code="400">Invalid credentials or account locked</response>
+            <response code="429">Too many login attempts</response>
+            <response code="500">Internal server error</response>
+        </member>
+        <member name="M:KaopizAuth.WebAPI.Controllers.AuthController.Refresh(KaopizAuth.Application.Common.Models.RefreshTokenRequest)">
+            <summary>
+            Refresh expired access token using refresh token
+            </summary>
+            <param name="request">Refresh token request containing the refresh token</param>
+            <returns>New access token and refresh token pair</returns>
+            <remarks>
+            Exchanges a valid refresh token for a new access token and refresh token.
+            This endpoint should be used when the access token expires to maintain user session.
+            
+            **Token Rotation:** Each refresh generates a new refresh token for enhanced security.
+            
+            **Example request:**
+            ```json
+            {
+              "refreshToken": "b8c9d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6"
+            }
+            ```
+            
+            **Success Response Example:**
+            ```json
+            {
+              "success": true,
+              "message": "Token refreshed successfully",
+              "data": {
+                "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                "refreshToken": "c9d0e1f2g3h4i5j6k7l8m9n0o1p2q3r4...",
+                "expiresAt": "2025-08-21T12:30:00Z"
+              },
+              "errors": []
+            }
+            ```
+            </remarks>
+            <response code="200">Token refreshed successfully</response>
+            <response code="400">Invalid or expired refresh token</response>
+            <response code="401">Refresh token not found or revoked</response>
+            <response code="500">Internal server error</response>
+        </member>
+        <member name="M:KaopizAuth.WebAPI.Controllers.AuthController.Logout(KaopizAuth.Application.Common.Models.LogoutRequest)">
+            <summary>
+            Logout user and revoke refresh tokens
+            </summary>
+            <param name="request">Logout request containing refresh token and optional settings</param>
+            <returns>Logout confirmation</returns>
+            <remarks>
+            Logs out the user by revoking the specified refresh token. 
+            Optionally can revoke all refresh tokens for the user across all devices.
+            
+            **Security:** Always revoke refresh tokens on logout to prevent unauthorized access.
+            
+            **Example request:**
+            ```json
+            {
+              "refreshToken": "b8c9d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6",
+              "revokeAllTokens": false
+            }
+            ```
+            
+            **Success Response Example:**
+            ```json
+            {
+              "success": true,
+              "message": "Logout successful",
+              "data": true,
+              "errors": []
+            }
+            ```
+            </remarks>
+            <response code="200">Logout successful</response>
+            <response code="400">Invalid refresh token</response>
+            <response code="401">Authentication required</response>
+            <response code="500">Internal server error</response>
+        </member>
+        <member name="M:KaopizAuth.WebAPI.Controllers.AuthController.GetClientIpAddress">
+            <summary>
+            Get client IP address from request
+            </summary>
+            <returns>Client IP address</returns>
+        </member>
+        <member name="M:KaopizAuth.WebAPI.Controllers.AuthController.Health">
+            <summary>
+            Health check endpoint for authentication service
+            </summary>
+            <returns>Service health status and basic information</returns>
+            <remarks>
+            Returns the health status of the authentication service including timestamp.
+            This endpoint can be used for monitoring and load balancer health checks.
+            
+            **Example Response:**
+            ```json
+            {
+              "service": "Authentication",
+              "status": "Healthy",
+              "timestamp": "2025-08-21T10:00:00Z"
+            }
+            ```
+            </remarks>
+            <response code="200">Service is healthy</response>
+        </member>
+        <member name="T:KaopizAuth.WebAPI.Middleware.LoginRateLimitingMiddleware">
+            <summary>
+            Rate limiting middleware for login attempts
+            </summary>
+        </member>
+        <member name="T:KaopizAuth.WebAPI.Models.Requests.RegisterRequest">
+            <summary>
+            Request model for user registration
+            </summary>
+        </member>
+        <member name="P:KaopizAuth.WebAPI.Models.Requests.RegisterRequest.Email">
+            <summary>
+            User's email address
+            </summary>
+        </member>
+        <member name="P:KaopizAuth.WebAPI.Models.Requests.RegisterRequest.Password">
+            <summary>
+            User's password
+            </summary>
+        </member>
+        <member name="P:KaopizAuth.WebAPI.Models.Requests.RegisterRequest.ConfirmPassword">
+            <summary>
+            Password confirmation
+            </summary>
+        </member>
+        <member name="P:KaopizAuth.WebAPI.Models.Requests.RegisterRequest.FirstName">
+            <summary>
+            User's first name
+            </summary>
+        </member>
+        <member name="P:KaopizAuth.WebAPI.Models.Requests.RegisterRequest.LastName">
+            <summary>
+            User's last name
+            </summary>
+        </member>
+        <member name="P:KaopizAuth.WebAPI.Models.Requests.RegisterRequest.UserType">
+            <summary>
+            Type of user being registered
+            </summary>
+        </member>
+        <member name="T:KaopizAuth.WebAPI.Models.Responses.RegisterResponse">
+            <summary>
+            Response model for user registration
+            </summary>
+        </member>
+        <member name="P:KaopizAuth.WebAPI.Models.Responses.RegisterResponse.UserId">
+            <summary>
+            ID of the newly created user
+            </summary>
+        </member>
+        <member name="P:KaopizAuth.WebAPI.Models.Responses.RegisterResponse.Message">
+            <summary>
+            Success message
+            </summary>
+        </member>
+    </members>
+</doc>
