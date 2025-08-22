@@ -1,3 +1,4 @@
+
 // Authentication related TypeScript interfaces and types
 
 /**
@@ -17,6 +18,8 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
+  fullName: string;
+  roles: string[];
   userType: UserType;
   isEmailConfirmed: boolean;
   createdAt: string;
@@ -43,6 +46,24 @@ export interface RegisterData {
   firstName: string;
   lastName: string;
   userType: UserType;
+}
+
+export interface LoginResponse {
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: string;
+  user: User;
+}
+
+export interface FormFieldError {
+  [key: string]: string;
+}
+
+export interface FormState<T> {
+  values: T;
+  errors: FormFieldError;
+  isSubmitting: boolean;
+  isValid: boolean;
 }
 
 /**
