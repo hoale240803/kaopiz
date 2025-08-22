@@ -80,6 +80,20 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
 
             // Generate tokens
             var accessToken = await _jwtTokenService.GenerateAccessTokenAsync(user);
+
+            var refreshToken = _jwtTokenService.GenerateRefreshToken();
+
+            // Create refresh token entity
+            var refreshTokenEntity = RefreshToken.Create(
+                refreshToken,
+                DateTime.UtcNow.AddDays(7), // 7 days as per requirements
+                user.Id.ToString(),
+                request.IpAddress,
+                "System"
+            );
+
+            // Add to user's refresh tokens
+            user.RefreshTokens.Add(refreshTokenEntity);
             
             // Check for active tokens and manage session limits
             var activeTokens = await _refreshTokenRepository.GetActiveTokensByUserIdAsync(user.Id);
@@ -121,7 +135,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
                 ExpiresAt = DateTime.UtcNow.AddMinutes(15), // 15 minutes as per requirements
                 User = new UserDto
                 {
-                    Id = user.Id,
+                    Id = user.Id.ToString(),
                     Email = user.Email ?? string.Empty,
                     FirstName = user.FirstName ?? string.Empty,
                     LastName = user.LastName ?? string.Empty,
