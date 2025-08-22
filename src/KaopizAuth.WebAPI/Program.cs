@@ -8,6 +8,7 @@ using KaopizAuth.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using Prometheus;
 using Serilog;
 
 // Configure Serilog
@@ -159,6 +160,19 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Add Prometheus metrics middleware
+if (app.Configuration.GetValue<bool>("Performance:EnableMetrics", true))
+{
+    app.UseMetricServer(); // Exposes /metrics endpoint
+    app.UseHttpMetrics(); // Captures HTTP metrics
+}
+
+// Add security headers middleware (should be early in pipeline)
+app.UseMiddleware<SecurityHeadersMiddleware>();
+
+// Add performance monitoring middleware
+app.UseMiddleware<PerformanceMonitoringMiddleware>();
+
 // Add rate limiting middleware
 app.UseMiddleware<LoginRateLimitingMiddleware>();
 
@@ -187,3 +201,6 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+// Make the implicit Program class public for testing
+public partial class Program { }

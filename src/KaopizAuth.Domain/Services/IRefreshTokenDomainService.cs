@@ -12,8 +12,10 @@ public interface IRefreshTokenDomainService
     /// </summary>
     /// <param name="userId">The user ID</param>
     /// <param name="ipAddress">The IP address where the token is being created</param>
+    /// <param name="rememberMe">Whether this is a persistent "remember me" session (30 days vs 7 days)</param>
+    /// <param name="userAgent">The user agent for device fingerprinting</param>
     /// <returns>A new refresh token</returns>
-    RefreshToken GenerateRefreshToken(Guid userId, string ipAddress);
+    RefreshToken GenerateRefreshToken(Guid userId, string ipAddress, bool rememberMe = false, string? userAgent = null);
 
     /// <summary>
     /// Validates if a refresh token can be used (not expired, not revoked)

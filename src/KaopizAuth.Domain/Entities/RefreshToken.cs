@@ -23,6 +23,21 @@ public class RefreshToken : BaseEntity<Guid>
     public string? CreatedByIp { get; set; }
 
     /// <summary>
+    /// Gets or sets the user agent that created this token (for device fingerprinting)
+    /// </summary>
+    public string? UserAgent { get; set; }
+
+    /// <summary>
+    /// Gets or sets the device fingerprint for security tracking
+    /// </summary>
+    public string? DeviceFingerprint { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether this is a persistent session (Remember Me)
+    /// </summary>
+    public bool IsPersistent { get; set; }
+
+    /// <summary>
     /// Gets or sets when the token was revoked
     /// </summary>
     public DateTime? RevokedAt { get; set; }
@@ -45,7 +60,7 @@ public class RefreshToken : BaseEntity<Guid>
     /// <summary>
     /// Gets or sets the user ID this token belongs to
     /// </summary>
-    public string UserId { get; set; } = string.Empty;
+    public Guid UserId { get; set; }
 
     /// <summary>
     /// Navigation property to the user
@@ -101,15 +116,29 @@ public class RefreshToken : BaseEntity<Guid>
     /// <param name="userId">User ID</param>
     /// <param name="createdByIp">IP address</param>
     /// <param name="createdBy">Who created the token</param>
+    /// <param name="userAgent">User agent for device fingerprinting</param>
+    /// <param name="deviceFingerprint">Device fingerprint</param>
+    /// <param name="isPersistent">Whether this is a persistent session</param>
     /// <returns>New RefreshToken instance</returns>
-    public static RefreshToken Create(string token, DateTime expiresAt, string userId, string? createdByIp = null, string? createdBy = null)
+    public static RefreshToken Create(
+        string token, 
+        DateTime expiresAt, 
+        string userId, 
+        string? createdByIp = null, 
+        string? createdBy = null,
+        string? userAgent = null,
+        string? deviceFingerprint = null,
+        bool isPersistent = false)
     {
         var refreshToken = new RefreshToken
         {
             Token = token,
             ExpiresAt = expiresAt,
             UserId = userId,
-            CreatedByIp = createdByIp
+            CreatedByIp = createdByIp,
+            UserAgent = userAgent,
+            DeviceFingerprint = deviceFingerprint,
+            IsPersistent = isPersistent
         };
 
         if (createdBy != null)
