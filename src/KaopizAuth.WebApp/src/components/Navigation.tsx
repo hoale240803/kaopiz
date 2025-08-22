@@ -44,6 +44,9 @@ export function Navigation() {
             <Link to="/" className="nav-link">
               Home
             </Link>
+            <Link to="/test" className="nav-link">
+              Test
+            </Link>
             {user.userType === 'Admin' && (
               <Link to="/admin" className="nav-link">
                 Admin Panel
