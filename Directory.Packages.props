@@ -57,5 +57,6 @@
         <PackageVersion Include="prometheus-net.AspNetCore" Version="8.2.1" />
         <PackageVersion Include="Serilog.AspNetCore" Version="8.0.2" />
         <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+        <PackageVersion Include="Swashbuckle.AspNetCore.Annotations" Version="6.6.2" />
     </ItemGroup>
 </Project>

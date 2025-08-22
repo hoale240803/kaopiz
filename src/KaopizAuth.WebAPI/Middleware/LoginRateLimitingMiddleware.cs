@@ -40,7 +40,10 @@ public class LoginRateLimitingMiddleware
                 
                 var response = ApiResponse<object>.FailureResult(
                     "Too many login attempts. Please try again later.",
-                    new Dictionary<string, string[]> { { "rateLimitExceeded", new[] { "Rate limit exceeded. Maximum 5 attempts per 15 minutes." } } }
+                    new Dictionary<string, string[]> 
+                    { 
+                        ["RateLimit"] = new[] { "Rate limit exceeded. Maximum 5 attempts per 15 minutes." }
+                    }
                 );
                 
                 var jsonResponse = JsonSerializer.Serialize(response);
