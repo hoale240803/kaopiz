@@ -63,13 +63,13 @@ public class RefreshTokenCommandHandlerTests
         var existingRefreshToken = RefreshToken.Create(
             "valid-refresh-token",
             DateTime.UtcNow.AddDays(1),
-            userId.ToString(),
+            userId,
             "127.0.0.1");
 
         var newRefreshToken = RefreshToken.Create(
             "new-refresh-token",
             DateTime.UtcNow.AddDays(1),
-            userId.ToString(),
+            userId,
             "127.0.0.1");
 
         _mockRefreshTokenRepository

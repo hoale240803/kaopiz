@@ -52,7 +52,7 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, ApiResponse<b
             if (request.RevokeAllTokens)
             {
                 // Revoke all tokens for the user
-                var userTokens = await _refreshTokenRepository.GetActiveTokensByUserIdAsync(Guid.Parse(userId), cancellationToken);
+                var userTokens = await _refreshTokenRepository.GetActiveTokensByUserIdAsync(userId, cancellationToken);
                 _refreshTokenDomainService.RevokeAllUserTokens(
                     userTokens,
                     request.IpAddress ?? "Unknown",

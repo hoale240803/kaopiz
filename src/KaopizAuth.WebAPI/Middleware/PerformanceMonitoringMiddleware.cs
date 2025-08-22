@@ -20,7 +20,7 @@ public class PerformanceMonitoringMiddleware
         _logger = logger;
         _configuration = configuration;
     }
-  
+
     private const string ResponseTimeHeaderName = "X-Response-Time-ms";
 
     public async Task InvokeAsync(HttpContext context)
@@ -38,23 +38,22 @@ public class PerformanceMonitoringMiddleware
 
         var stopwatch = Stopwatch.StartNew();
         var requestId = Guid.NewGuid().ToString("N")[..8];
-        
+
         // Add request ID to response headers
-        context.Response.Headers.Add("X-Request-ID", requestId);
+        context.Response.Headers.Append("X-Request-ID", requestId);
 
         // Log request start
         if (requestLoggingEnabled)
         {
-            _logger.LogInformation("Request started: {Method} {Path} - RequestId: {RequestId}", 
-                context.Request.Method, 
-                context.Request.Path, 
+            _logger.LogInformation("Request started: {Method} {Path} - RequestId: {RequestId}",
+                context.Request.Method,
+                context.Request.Path,
                 requestId);
         }
 
         Exception? requestException = null;
-      
+
         var correlationId = context.Items["CorrelationId"]?.ToString() ?? Guid.NewGuid().ToString();
-        var stopwatch = Stopwatch.StartNew();
 
         try
         {
@@ -73,14 +72,14 @@ public class PerformanceMonitoringMiddleware
             // Add performance headers
             if (performanceEnabled)
             {
-                context.Response.Headers.Add("X-Response-Time-ms", elapsedMs.ToString());
+                context.Response.Headers.Append("X-Response-Time-ms", elapsedMs.ToString());
             }
 
             // Log request completion
             if (requestLoggingEnabled)
             {
                 var logLevel = DetermineLogLevel(context.Response.StatusCode, elapsedMs, slowRequestThreshold, requestException);
-                
+
                 _logger.Log(logLevel, requestException,
                     "Request completed: {Method} {Path} - Status: {StatusCode} - Duration: {ElapsedMs}ms - RequestId: {RequestId}",
                     context.Request.Method,
@@ -129,7 +128,7 @@ public class PerformanceMonitoringMiddleware
     {
         // In a production environment, you would send these metrics to a monitoring system
         // like Prometheus, Application Insights, or New Relic
-        
+
         var endpoint = $"{context.Request.Method} {context.Request.Path.Value}";
         var statusCode = context.Response.StatusCode;
         var success = exception == null && statusCode < 400;
@@ -137,18 +136,6 @@ public class PerformanceMonitoringMiddleware
         // Example: Log metrics that could be consumed by external monitoring
         _logger.LogInformation("METRICS: Endpoint={Endpoint} StatusCode={StatusCode} Duration={Duration}ms Success={Success}",
             endpoint, statusCode, elapsedMs, success);
-
-        finally
-        {
-            stopwatch.Stop();
-            var responseTimeMs = stopwatch.ElapsedMilliseconds;
-
-            // Add response time to headers
-            context.Response.Headers.Append(ResponseTimeHeaderName, responseTimeMs.ToString());
-
-            // Log performance metrics
-            LogPerformanceMetrics(context, responseTimeMs, correlationId);
-        }
     }
 
     private void LogPerformanceMetrics(HttpContext context, long responseTimeMs, string correlationId)

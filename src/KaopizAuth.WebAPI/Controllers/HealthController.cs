@@ -231,7 +231,9 @@ public class HealthController : ControllerBase
     {
         try
         {
-            return await _context.Database.CanConnectAsync();
+            // Try to execute a simple query to check database connectivity
+            var userCount = await _context.Users.CountAsync();
+            return true;
         }
         catch
         {

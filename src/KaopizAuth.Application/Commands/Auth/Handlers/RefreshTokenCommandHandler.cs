@@ -59,7 +59,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
             }
 
             // Get the user
-            var user = await _userManager.FindByIdAsync(refreshToken.UserId);
+            var user = await _userManager.FindByIdAsync(refreshToken.UserId.ToString());
             if (user == null)
             {
                 _logger.LogWarning("User not found for refresh token: {UserId}", refreshToken.UserId);

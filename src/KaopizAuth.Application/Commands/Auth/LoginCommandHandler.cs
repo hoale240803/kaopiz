@@ -48,7 +48,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
             var user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null)
             {
-                _logger.LogWarning("Login attempt failed: User not found for email {Email} from IP {IpAddress}", 
+                _logger.LogWarning("Login attempt failed: User not found for email {Email} from IP {IpAddress}",
                     request.Email, request.IpAddress ?? "Unknown");
                 return ApiResponse<LoginResponse>.FailureResult("Invalid email or password");
             }
@@ -56,24 +56,24 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
             // Check if user is active
             if (!user.IsActive)
             {
-                _logger.LogWarning("Login attempt failed: User account is inactive for email {Email} from IP {IpAddress}", 
+                _logger.LogWarning("Login attempt failed: User account is inactive for email {Email} from IP {IpAddress}",
                     request.Email, request.IpAddress ?? "Unknown");
                 return ApiResponse<LoginResponse>.FailureResult("Account is inactive");
             }
 
             // Attempt to sign in
             var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
-            
+
             if (!result.Succeeded)
             {
                 if (result.IsLockedOut)
                 {
-                    _logger.LogWarning("Login attempt failed: Account locked out for email {Email} from IP {IpAddress}", 
+                    _logger.LogWarning("Login attempt failed: Account locked out for email {Email} from IP {IpAddress}",
                         request.Email, request.IpAddress ?? "Unknown");
                     return ApiResponse<LoginResponse>.FailureResult("Account is locked out due to too many failed attempts");
                 }
 
-                _logger.LogWarning("Login attempt failed: Invalid password for email {Email} from IP {IpAddress}", 
+                _logger.LogWarning("Login attempt failed: Invalid password for email {Email} from IP {IpAddress}",
                     request.Email, request.IpAddress ?? "Unknown");
                 return ApiResponse<LoginResponse>.FailureResult("Invalid email or password");
             }
@@ -81,23 +81,9 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
             // Generate tokens
             var accessToken = await _jwtTokenService.GenerateAccessTokenAsync(user);
 
-            var refreshToken = _jwtTokenService.GenerateRefreshToken();
-
-            // Create refresh token entity
-            var refreshTokenEntity = RefreshToken.Create(
-                refreshToken,
-                DateTime.UtcNow.AddDays(7), // 7 days as per requirements
-                user.Id.ToString(),
-                request.IpAddress,
-                "System"
-            );
-
-            // Add to user's refresh tokens
-            user.RefreshTokens.Add(refreshTokenEntity);
-            
             // Check for active tokens and manage session limits
             var activeTokens = await _refreshTokenRepository.GetActiveTokensByUserIdAsync(user.Id);
-            
+
             // If user has too many active tokens, revoke oldest ones
             if (_refreshTokenDomainService.HasTooManyActiveTokens(activeTokens, 5))
             {
@@ -105,20 +91,20 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
                 foreach (var tokenToRevoke in tokensToRevoke)
                 {
                     _refreshTokenDomainService.RevokeRefreshToken(
-                        tokenToRevoke, 
-                        request.IpAddress ?? "Unknown", 
+                        tokenToRevoke,
+                        request.IpAddress ?? "Unknown",
                         "Session limit exceeded");
                 }
             }
 
             // Generate new refresh token with appropriate expiration based on Remember Me
-            var refreshToken = _refreshTokenDomainService.GenerateRefreshToken(
-                user.Id, 
-                request.IpAddress ?? "Unknown", 
+            var refreshTokenEntity = _refreshTokenDomainService.GenerateRefreshToken(
+                user.Id,
+                request.IpAddress ?? "Unknown",
                 request.RememberMe);
 
             // Save the refresh token
-            await _refreshTokenRepository.AddAsync(refreshToken);
+            await _refreshTokenRepository.AddAsync(refreshTokenEntity);
             await _unitOfWork.SaveChangesAsync();
 
             // Update user's last login time
@@ -131,7 +117,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
             var response = new LoginResponse
             {
                 AccessToken = accessToken,
-                RefreshToken = refreshToken.Token,
+                RefreshToken = refreshTokenEntity.Token,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(15), // 15 minutes as per requirements
                 User = new UserDto
                 {
@@ -144,13 +130,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
                 }
             };
 
-            _logger.LogInformation("Login successful for user {Email} from IP {IpAddress}", 
+            _logger.LogInformation("Login successful for user {Email} from IP {IpAddress}",
                 request.Email, request.IpAddress ?? "Unknown");
             return ApiResponse<LoginResponse>.SuccessResult(response, "Login successful");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred during login for email {Email} from IP {IpAddress}", 
+            _logger.LogError(ex, "An error occurred during login for email {Email} from IP {IpAddress}",
                 request.Email, request.IpAddress ?? "Unknown");
             return ApiResponse<LoginResponse>.FailureResult("An error occurred during login");
         }

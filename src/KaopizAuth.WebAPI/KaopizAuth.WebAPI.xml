@@ -216,9 +216,64 @@
             </remarks>
             <response code="200">Service is healthy</response>
         </member>
+        <member name="T:KaopizAuth.WebAPI.Controllers.HealthController">
+            <summary>
+            Health check controller for monitoring application health
+            </summary>
+        </member>
+        <member name="M:KaopizAuth.WebAPI.Controllers.HealthController.GetHealth">
+            <summary>
+            Basic health check endpoint
+            </summary>
+            <returns>Basic health status</returns>
+        </member>
+        <member name="M:KaopizAuth.WebAPI.Controllers.HealthController.GetReadiness">
+            <summary>
+            Readiness probe for Kubernetes/container orchestration
+            </summary>
+            <returns>Readiness status</returns>
+        </member>
+        <member name="M:KaopizAuth.WebAPI.Controllers.HealthController.GetLiveness">
+            <summary>
+            Liveness probe for Kubernetes/container orchestration
+            </summary>
+            <returns>Liveness status</returns>
+        </member>
+        <member name="M:KaopizAuth.WebAPI.Controllers.HealthController.GetDatabaseHealth">
+            <summary>
+            Database health check endpoint
+            </summary>
+            <returns>Database connection status</returns>
+        </member>
+        <member name="M:KaopizAuth.WebAPI.Controllers.HealthController.GetDetailedHealth">
+            <summary>
+            Comprehensive health check with all dependencies
+            </summary>
+            <returns>Complete health status</returns>
+        </member>
+        <member name="T:KaopizAuth.WebAPI.Middleware.CorrelationIdMiddleware">
+            <summary>
+            Middleware to add correlation IDs for request tracing and logging
+            </summary>
+        </member>
+        <member name="T:KaopizAuth.WebAPI.Middleware.GlobalExceptionHandlingMiddleware">
+            <summary>
+            Global exception handling middleware to provide standardized error responses
+            </summary>
+        </member>
         <member name="T:KaopizAuth.WebAPI.Middleware.LoginRateLimitingMiddleware">
             <summary>
             Rate limiting middleware for login attempts
+            </summary>
+        </member>
+        <member name="T:KaopizAuth.WebAPI.Middleware.PerformanceMonitoringMiddleware">
+            <summary>
+            Middleware to monitor and log API performance metrics
+            </summary>
+        </member>
+        <member name="T:KaopizAuth.WebAPI.Middleware.SecurityHeadersMiddleware">
+            <summary>
+            Middleware for adding security headers to HTTP responses
             </summary>
         </member>
         <member name="T:KaopizAuth.WebAPI.Models.Requests.RegisterRequest">

@@ -18,7 +18,6 @@ public class SecurityHeadersMiddleware
         _configuration = configuration;
         _logger = logger;
     }
-    private readonly ILogger<SecurityHeadersMiddleware> _logger;
 
     public async Task InvokeAsync(HttpContext context)
     {
@@ -31,7 +30,7 @@ public class SecurityHeadersMiddleware
     private void AddSecurityHeaders(HttpContext context)
     {
         var securityEnabled = _configuration.GetValue<bool>("Security:EnableSecurityHeaders", true);
-        
+
         if (!securityEnabled)
         {
             return;
@@ -45,57 +44,58 @@ public class SecurityHeadersMiddleware
         // X-Content-Type-Options: Prevent MIME type sniffing
         if (!headers.ContainsKey("X-Content-Type-Options"))
         {
-            headers.Add("X-Content-Type-Options", "nosniff");
+            headers.Append("X-Content-Type-Options", "nosniff");
         }
 
         // X-Frame-Options: Prevent clickjacking
         if (!headers.ContainsKey("X-Frame-Options"))
         {
-            headers.Add("X-Frame-Options", "DENY");
+            headers.Append("X-Frame-Options", "DENY");
         }
 
         // X-XSS-Protection: Enable XSS filtering
         if (!headers.ContainsKey("X-XSS-Protection"))
         {
-            headers.Add("X-XSS-Protection", "1; mode=block");
+            headers.Append("X-XSS-Protection", "1; mode=block");
         }
 
         // Referrer-Policy: Control referrer information
         if (!headers.ContainsKey("Referrer-Policy"))
         {
-            headers.Add("Referrer-Policy", "strict-origin-when-cross-origin");
+            headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
         }
 
         // Content-Security-Policy: Prevent XSS and data injection attacks
         if (!headers.ContainsKey("Content-Security-Policy") && !IsApiRequest(context))
         {
-            headers.Add("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none';");
+            headers.Append("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none';");
         }
 
         // Strict-Transport-Security: Force HTTPS (only add if request is HTTPS)
         if (context.Request.IsHttps && !headers.ContainsKey("Strict-Transport-Security"))
         {
-            headers.Add("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+            headers.Append("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
         }
 
         // Permissions-Policy: Control browser features
         if (!headers.ContainsKey("Permissions-Policy"))
         {
-            headers.Add("Permissions-Policy", "camera=(), microphone=(), geolocation=(), interest-cohort=()");
+            headers.Append("Permissions-Policy", "camera=(), microphone=(), geolocation=(), interest-cohort=()");
         }
 
         // X-Permitted-Cross-Domain-Policies: Control cross-domain requests
         if (!headers.ContainsKey("X-Permitted-Cross-Domain-Policies"))
         {
-            headers.Add("X-Permitted-Cross-Domain-Policies", "none");
+            headers.Append("X-Permitted-Cross-Domain-Policies", "none");
         }
 
         // Cache-Control for API endpoints
         if (IsApiRequest(context) && !headers.ContainsKey("Cache-Control"))
         {
-            headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
-            headers.Add("Pragma", "no-cache");
-            headers.Add("Expires", "0");
+            headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
+            headers.Append("Pragma", "no-cache");
+            headers.Append("Expires", "0");
+        }
 
         var response = context.Response;
 
@@ -132,7 +132,7 @@ public class SecurityHeadersMiddleware
         // Content-Security-Policy: Prevents various injection attacks
         if (!response.Headers.ContainsKey("Content-Security-Policy"))
         {
-            response.Headers.Append("Content-Security-Policy", 
+            response.Headers.Append("Content-Security-Policy",
                 "default-src 'self'; " +
                 "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
                 "style-src 'self' 'unsafe-inline'; " +
@@ -147,7 +147,7 @@ public class SecurityHeadersMiddleware
 
     private static bool IsApiRequest(HttpContext context)
     {
-        return context.Request.Path.StartsWithSegments("/api") || 
+        return context.Request.Path.StartsWithSegments("/api") ||
                context.Request.Headers.Accept.Any(x => x?.Contains("application/json") == true);
     }
 }

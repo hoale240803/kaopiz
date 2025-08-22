@@ -121,10 +121,10 @@ public class RefreshToken : BaseEntity<Guid>
     /// <param name="isPersistent">Whether this is a persistent session</param>
     /// <returns>New RefreshToken instance</returns>
     public static RefreshToken Create(
-        string token, 
-        DateTime expiresAt, 
-        string userId, 
-        string? createdByIp = null, 
+        string token,
+        DateTime expiresAt,
+        Guid userId,
+        string? createdByIp = null,
         string? createdBy = null,
         string? userAgent = null,
         string? deviceFingerprint = null,

@@ -24,21 +24,21 @@ public class RefreshTokenDomainService : IRefreshTokenDomainService
     public RefreshToken GenerateRefreshToken(Guid userId, string ipAddress, bool rememberMe = false, string? userAgent = null)
     {
         var token = GenerateSecureToken();
-        
+
         // Set expiration based on Remember Me flag
-        var expirationDays = rememberMe 
+        var expirationDays = rememberMe
             ? int.Parse(_configuration["JWT:PersistentTokenExpirationDays"] ?? "30") // 30 days for persistent sessions
             : int.Parse(_configuration["JWT:RefreshTokenExpirationDays"] ?? "7");    // 7 days for regular sessions
-            
+
         var expiresAt = DateTime.UtcNow.AddDays(expirationDays);
-        
+
         // Generate device fingerprint for security
         var deviceFingerprint = _deviceFingerprintService.GenerateFingerprint(ipAddress, userAgent);
 
         var refreshToken = RefreshToken.Create(
             token: token,
             expiresAt: expiresAt,
-            userId: userId.ToString(),
+            userId: userId,
             createdByIp: ipAddress,
             createdBy: "System",
             userAgent: userAgent,

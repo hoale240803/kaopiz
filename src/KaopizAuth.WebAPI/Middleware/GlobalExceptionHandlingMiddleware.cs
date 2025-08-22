@@ -81,8 +81,8 @@ public class GlobalExceptionHandlingMiddleware
     {
         return exception switch
         {
-            ArgumentException => "Invalid argument provided.",
             ArgumentNullException => "Required argument is missing.",
+            ArgumentException => "Invalid argument provided.",
             UnauthorizedAccessException => "Access denied.",
             InvalidOperationException => "Invalid operation.",
             NotImplementedException => "Feature not implemented.",
@@ -95,8 +95,8 @@ public class GlobalExceptionHandlingMiddleware
     {
         return exception switch
         {
-            ArgumentException => HttpStatusCode.BadRequest,
             ArgumentNullException => HttpStatusCode.BadRequest,
+            ArgumentException => HttpStatusCode.BadRequest,
             UnauthorizedAccessException => HttpStatusCode.Unauthorized,
             InvalidOperationException => HttpStatusCode.BadRequest,
             NotImplementedException => HttpStatusCode.NotImplemented,
