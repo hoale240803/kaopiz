@@ -60,7 +60,7 @@ public class RefreshToken : BaseEntity<Guid>
     /// <summary>
     /// Gets or sets the user ID this token belongs to
     /// </summary>
-    public string UserId { get; set; } = string.Empty;
+    public Guid UserId { get; set; }
 
     /// <summary>
     /// Navigation property to the user
