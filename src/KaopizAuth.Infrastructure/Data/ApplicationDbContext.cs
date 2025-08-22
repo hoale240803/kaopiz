@@ -17,6 +17,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public new DbSet<ApplicationUser> Users => Set<ApplicationUser>();
     public new DbSet<ApplicationRole> Roles => Set<ApplicationRole>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -28,6 +29,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         // Configure Identity table names
         builder.Entity<ApplicationUser>().ToTable("Users");
         builder.Entity<ApplicationRole>().ToTable("Roles");
+        builder.Entity<AuditEntry>().ToTable("AuditEntries");
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

@@ -1,0 +1,9 @@
+global using Xunit;
+global using FluentAssertions;
+global using Moq;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.AspNetCore.Mvc.Testing;
+global using Microsoft.EntityFrameworkCore;
+global using System.Net;
+global using System.Text;
+global using System.Text.Json;
