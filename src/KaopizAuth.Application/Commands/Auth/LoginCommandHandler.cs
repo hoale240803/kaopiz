@@ -2,6 +2,7 @@ using KaopizAuth.Application.Common.Interfaces;
 using KaopizAuth.Application.Common.Models;
 using KaopizAuth.Domain.Entities;
 using KaopizAuth.Domain.Interfaces;
+using KaopizAuth.Domain.Services;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
+    private readonly IRefreshTokenDomainService _refreshTokenDomainService;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<LoginCommandHandler> _logger;
 
     public LoginCommandHandler(
@@ -24,12 +27,16 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
         SignInManager<ApplicationUser> signInManager,
         IJwtTokenService jwtTokenService,
         IRefreshTokenRepository refreshTokenRepository,
+        IRefreshTokenDomainService refreshTokenDomainService,
+        IUnitOfWork unitOfWork,
         ILogger<LoginCommandHandler> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _jwtTokenService = jwtTokenService;
         _refreshTokenRepository = refreshTokenRepository;
+        _refreshTokenDomainService = refreshTokenDomainService;
+        _unitOfWork = unitOfWork;
         _logger = logger;
     }
 
@@ -73,21 +80,48 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
 
             // Generate tokens
             var accessToken = await _jwtTokenService.GenerateAccessTokenAsync(user);
-            var refreshTokenValue = _jwtTokenService.GenerateRefreshToken();
+
+            var refreshToken = _jwtTokenService.GenerateRefreshToken();
 
             // Create refresh token entity
-            var refreshToken = RefreshToken.Create(
-                token: refreshTokenValue,
-                expiresAt: DateTime.UtcNow.AddDays(7), // 7 days as per requirements
-                userId: user.Id.ToString(),
-                createdByIp: request.IpAddress,
-                createdBy: user.Id.ToString()
+            var refreshTokenEntity = RefreshToken.Create(
+                refreshToken,
+                DateTime.UtcNow.AddDays(7), // 7 days as per requirements
+                user.Id.ToString(),
+                request.IpAddress,
+                "System"
             );
 
-            // Save refresh token
-            await _refreshTokenRepository.AddAsync(refreshToken);
+            // Add to user's refresh tokens
+            user.RefreshTokens.Add(refreshTokenEntity);
             
-            // Update user last login
+            // Check for active tokens and manage session limits
+            var activeTokens = await _refreshTokenRepository.GetActiveTokensByUserIdAsync(user.Id);
+            
+            // If user has too many active tokens, revoke oldest ones
+            if (_refreshTokenDomainService.HasTooManyActiveTokens(activeTokens, 5))
+            {
+                var tokensToRevoke = _refreshTokenDomainService.GetTokensToRevoke(activeTokens, 5);
+                foreach (var tokenToRevoke in tokensToRevoke)
+                {
+                    _refreshTokenDomainService.RevokeRefreshToken(
+                        tokenToRevoke, 
+                        request.IpAddress ?? "Unknown", 
+                        "Session limit exceeded");
+                }
+            }
+
+            // Generate new refresh token with appropriate expiration based on Remember Me
+            var refreshToken = _refreshTokenDomainService.GenerateRefreshToken(
+                user.Id, 
+                request.IpAddress ?? "Unknown", 
+                request.RememberMe);
+
+            // Save the refresh token
+            await _refreshTokenRepository.AddAsync(refreshToken);
+            await _unitOfWork.SaveChangesAsync();
+
+            // Update user's last login time
             user.UpdateLastLogin();
             await _userManager.UpdateAsync(user);
 
@@ -97,7 +131,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
             var response = new LoginResponse
             {
                 AccessToken = accessToken,
-                RefreshToken = refreshTokenValue,
+                RefreshToken = refreshToken.Token,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(15), // 15 minutes as per requirements
                 User = new UserDto
                 {
