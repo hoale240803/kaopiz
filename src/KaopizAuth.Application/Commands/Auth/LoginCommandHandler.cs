@@ -71,10 +71,16 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
             var accessToken = await _jwtTokenService.GenerateAccessTokenAsync(user);
             var refreshToken = _jwtTokenService.GenerateRefreshToken();
 
-            // Update user with refresh token
-            user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // 7 days as per requirements
+            // Create and add refresh token to user's collection
+            var refreshTokenEntity = RefreshToken.Create(
+                refreshToken, 
+                DateTime.UtcNow.AddDays(7), // 7 days as per requirements
+                user.Id.ToString(), // Convert Guid to string
+                null, // IP address would come from HTTP context
+                user.Id.ToString() // Created by user
+            );
             
+            user.RefreshTokens.Add(refreshTokenEntity);
             await _userManager.UpdateAsync(user);
 
             // Get user roles for response
@@ -87,7 +93,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
                 ExpiresAt = DateTime.UtcNow.AddMinutes(15), // 15 minutes as per requirements
                 User = new UserDto
                 {
-                    Id = user.Id,
+                    Id = user.Id.ToString(), // Convert Guid to string
                     Email = user.Email ?? string.Empty,
                     FirstName = user.FirstName ?? string.Empty,
                     LastName = user.LastName ?? string.Empty,
