@@ -1,4 +1,7 @@
 using FluentValidation;
+using KaopizAuth.Application.Authorization;
+using KaopizAuth.Application.Services.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
@@ -24,6 +27,16 @@ public static class DependencyInjection
 
         // Add FluentValidation
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
+
+        // Add Authentication Strategies
+        services.AddScoped<EndUserAuthStrategy>();
+        services.AddScoped<AdminAuthStrategy>();
+        services.AddScoped<PartnerAuthStrategy>();
+        services.AddScoped<IUserAuthenticationStrategyFactory, UserAuthenticationStrategyFactory>();
+
+        // Add Authorization Handlers
+        services.AddScoped<IAuthorizationHandler, UserTypeAuthorizationHandler>();
+        services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
         return services;
     }
