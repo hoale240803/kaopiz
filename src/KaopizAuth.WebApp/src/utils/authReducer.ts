@@ -1,4 +1,5 @@
-import { AuthState, AuthAction, AuthActionType } from '../types/auth';
+import type { AuthState, AuthAction } from '../types/auth';
+import { AuthActionType } from '../types/auth';
 
 /**
  * Initial authentication state

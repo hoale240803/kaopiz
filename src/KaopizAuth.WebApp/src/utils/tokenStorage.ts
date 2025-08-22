@@ -1,4 +1,4 @@
-import { TokenPair, User } from '../types/auth';
+import type { TokenPair, User } from '../types/auth';
 
 /**
  * Storage keys for authentication data
