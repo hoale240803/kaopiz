@@ -92,15 +92,6 @@ export interface ApiResponse<T = any> {
 }
 
 // Frontend specific types
-export interface AuthState {
-  isAuthenticated: boolean;
-  user: UserDto | null;
-  accessToken: string | null;
-  refreshToken: string | null;
-  expiresAt: Date | null;
-  isLoading: boolean;
-}
-
 export interface AuthContextType {
   authState: AuthState;
   login: (credentials: LoginRequest) => Promise<boolean>;
