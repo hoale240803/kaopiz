@@ -20,17 +20,16 @@
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="FluentAssertions" />
-        <PackageReference Include="Moq" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+        <PackageReference Include="NBomber" />
         <PackageReference Include="Bogus" />
-        <PackageReference Include="AutoMapper" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\KaopizAuth.Application\KaopizAuth.Application.csproj" />
-        <ProjectReference
-            Include="..\..\src\KaopizAuth.Infrastructure\KaopizAuth.Infrastructure.csproj" />
         <ProjectReference Include="..\..\src\KaopizAuth.WebAPI\KaopizAuth.WebAPI.csproj" />
+        <ProjectReference Include="..\..\src\KaopizAuth.Infrastructure\KaopizAuth.Infrastructure.csproj" />
+        <ProjectReference Include="..\..\src\KaopizAuth.Application\KaopizAuth.Application.csproj" />
+        <ProjectReference Include="..\..\src\KaopizAuth.Domain\KaopizAuth.Domain.csproj" />
     </ItemGroup>
 
 </Project>
