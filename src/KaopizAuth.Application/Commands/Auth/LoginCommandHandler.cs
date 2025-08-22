@@ -1,6 +1,8 @@
 using KaopizAuth.Application.Common.Interfaces;
 using KaopizAuth.Application.Common.Models;
 using KaopizAuth.Domain.Entities;
+using KaopizAuth.Domain.Interfaces;
+using KaopizAuth.Domain.Services;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -15,17 +17,26 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly IRefreshTokenRepository _refreshTokenRepository;
+    private readonly IRefreshTokenDomainService _refreshTokenDomainService;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<LoginCommandHandler> _logger;
 
     public LoginCommandHandler(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         IJwtTokenService jwtTokenService,
+        IRefreshTokenRepository refreshTokenRepository,
+        IRefreshTokenDomainService refreshTokenDomainService,
+        IUnitOfWork unitOfWork,
         ILogger<LoginCommandHandler> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _jwtTokenService = jwtTokenService;
+        _refreshTokenRepository = refreshTokenRepository;
+        _refreshTokenDomainService = refreshTokenDomainService;
+        _unitOfWork = unitOfWork;
         _logger = logger;
     }
 
@@ -69,12 +80,49 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
 
             // Generate tokens
             var accessToken = await _jwtTokenService.GenerateAccessTokenAsync(user);
+
             var refreshToken = _jwtTokenService.GenerateRefreshToken();
 
-            // Update user with refresh token
-            user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // 7 days as per requirements
+            // Create refresh token entity
+            var refreshTokenEntity = RefreshToken.Create(
+                refreshToken,
+                DateTime.UtcNow.AddDays(7), // 7 days as per requirements
+                user.Id.ToString(),
+                request.IpAddress,
+                "System"
+            );
+
+            // Add to user's refresh tokens
+            user.RefreshTokens.Add(refreshTokenEntity);
             
+            // Check for active tokens and manage session limits
+            var activeTokens = await _refreshTokenRepository.GetActiveTokensByUserIdAsync(user.Id);
+            
+            // If user has too many active tokens, revoke oldest ones
+            if (_refreshTokenDomainService.HasTooManyActiveTokens(activeTokens, 5))
+            {
+                var tokensToRevoke = _refreshTokenDomainService.GetTokensToRevoke(activeTokens, 5);
+                foreach (var tokenToRevoke in tokensToRevoke)
+                {
+                    _refreshTokenDomainService.RevokeRefreshToken(
+                        tokenToRevoke, 
+                        request.IpAddress ?? "Unknown", 
+                        "Session limit exceeded");
+                }
+            }
+
+            // Generate new refresh token with appropriate expiration based on Remember Me
+            var refreshToken = _refreshTokenDomainService.GenerateRefreshToken(
+                user.Id, 
+                request.IpAddress ?? "Unknown", 
+                request.RememberMe);
+
+            // Save the refresh token
+            await _refreshTokenRepository.AddAsync(refreshToken);
+            await _unitOfWork.SaveChangesAsync();
+
+            // Update user's last login time
+            user.UpdateLastLogin();
             await _userManager.UpdateAsync(user);
 
             // Get user roles for response
@@ -83,11 +131,11 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
             var response = new LoginResponse
             {
                 AccessToken = accessToken,
-                RefreshToken = refreshToken,
+                RefreshToken = refreshToken.Token,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(15), // 15 minutes as per requirements
                 User = new UserDto
                 {
-                    Id = user.Id,
+                    Id = user.Id.ToString(),
                     Email = user.Email ?? string.Empty,
                     FirstName = user.FirstName ?? string.Empty,
                     LastName = user.LastName ?? string.Empty,
