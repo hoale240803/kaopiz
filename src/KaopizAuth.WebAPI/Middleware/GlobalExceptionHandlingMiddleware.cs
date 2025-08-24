@@ -14,7 +14,7 @@ public class GlobalExceptionHandlingMiddleware
     private readonly IWebHostEnvironment _environment;
 
     public GlobalExceptionHandlingMiddleware(
-        RequestDelegate next, 
+        RequestDelegate next,
         ILogger<GlobalExceptionHandlingMiddleware> logger,
         IWebHostEnvironment environment)
     {
@@ -39,7 +39,7 @@ public class GlobalExceptionHandlingMiddleware
     {
         var correlationId = context.Items["CorrelationId"]?.ToString() ?? Guid.NewGuid().ToString();
 
-        _logger.LogError(exception, 
+        _logger.LogError(exception,
             "Unhandled exception occurred. CorrelationId: {CorrelationId}, Path: {Path}, Method: {Method}",
             correlationId,
             context.Request.Path,

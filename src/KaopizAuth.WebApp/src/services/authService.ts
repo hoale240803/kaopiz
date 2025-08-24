@@ -1,16 +1,16 @@
-import { 
-  LoginCredentials, 
-  RegisterData, 
-  AuthResponse, 
-  TokenPair, 
-  ApiError 
+import {
+  ApiError,
+  AuthResponse,
+  LoginCredentials,
+  RegisterData,
+  TokenPair
 } from '../types/auth';
 import { TokenStorage } from '../utils/tokenStorage';
 
 /**
  * Base API URL - in a real app this would come from environment variables
  */
-const API_BASE_URL = process.env.VITE_API_BASE_URL || 'https://localhost:5001/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
 /**
  * Authentication service using native Fetch API

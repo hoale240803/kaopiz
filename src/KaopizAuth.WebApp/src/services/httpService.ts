@@ -1,13 +1,13 @@
-import { 
-  LoginRequest, 
-  LoginResponse, 
-  RefreshTokenRequest, 
-  RefreshTokenResponse,
+import {
+  ApiResponse,
+  LoginRequest,
+  LoginResponse,
   LogoutRequest,
-  ApiResponse 
+  RefreshTokenRequest,
+  RefreshTokenResponse
 } from '../types/auth';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
 class HttpService {
   private async request<T>(

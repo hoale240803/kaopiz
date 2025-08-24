@@ -48,7 +48,7 @@ public class HealthController : ControllerBase
         {
             // Check if the application is ready to receive traffic
             var dbConnected = await CheckDatabaseConnection();
-            
+
             if (!dbConnected)
             {
                 return ServiceUnavailable(new
@@ -194,7 +194,7 @@ public class HealthController : ControllerBase
             {
                 var drive = new DriveInfo(Path.GetPathRoot(logsPath) ?? "/");
                 var freeSpaceGB = drive.AvailableFreeSpace / (1024 * 1024 * 1024);
-                
+
                 healthChecks["DiskSpace"] = new
                 {
                     Status = freeSpaceGB > 1 ? "Healthy" : "Warning", // 1GB threshold
@@ -212,7 +212,7 @@ public class HealthController : ControllerBase
             };
         }
 
-        return overallStatus == "Unhealthy" 
+        return overallStatus == "Unhealthy"
             ? ServiceUnavailable(new
             {
                 Status = overallStatus,
