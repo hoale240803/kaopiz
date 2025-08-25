@@ -20,6 +20,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IRefreshTokenDomainService _refreshTokenDomainService;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IAuditService _auditService;
     private readonly ILogger<LoginCommandHandler> _logger;
 
     public LoginCommandHandler(
@@ -29,6 +30,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
         IRefreshTokenRepository refreshTokenRepository,
         IRefreshTokenDomainService refreshTokenDomainService,
         IUnitOfWork unitOfWork,
+        IAuditService auditService,
         ILogger<LoginCommandHandler> logger)
     {
         _userManager = userManager;
@@ -37,6 +39,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
         _refreshTokenRepository = refreshTokenRepository;
         _refreshTokenDomainService = refreshTokenDomainService;
         _unitOfWork = unitOfWork;
+        _auditService = auditService;
         _logger = logger;
     }
 
@@ -50,7 +53,12 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
             {
                 _logger.LogWarning("Login attempt failed: User not found for email {Email} from IP {IpAddress}",
                     request.Email, request.IpAddress ?? "Unknown");
-                return ApiResponse<LoginResponse>.FailureResult("Invalid email or password");
+
+                // Log failed login attempt
+                _ = Task.Run(async () => await _auditService.LogFailedLoginAsync(
+                    request.Email, request.IpAddress, "User not found"));
+
+                return ApiResponse<LoginResponse>.FailureResult("Invalid credentials");
             }
 
             // Check if user is active
@@ -58,6 +66,11 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
             {
                 _logger.LogWarning("Login attempt failed: User account is inactive for email {Email} from IP {IpAddress}",
                     request.Email, request.IpAddress ?? "Unknown");
+
+                // Log failed login attempt
+                _ = Task.Run(async () => await _auditService.LogFailedLoginAsync(
+                    request.Email, request.IpAddress, "Account inactive"));
+
                 return ApiResponse<LoginResponse>.FailureResult("Account is inactive");
             }
 
@@ -70,12 +83,22 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
                 {
                     _logger.LogWarning("Login attempt failed: Account locked out for email {Email} from IP {IpAddress}",
                         request.Email, request.IpAddress ?? "Unknown");
+
+                    // Log failed login attempt
+                    _ = Task.Run(async () => await _auditService.LogFailedLoginAsync(
+                        request.Email, request.IpAddress, "Account locked out"));
+
                     return ApiResponse<LoginResponse>.FailureResult("Account is locked out due to too many failed attempts");
                 }
 
                 _logger.LogWarning("Login attempt failed: Invalid password for email {Email} from IP {IpAddress}",
                     request.Email, request.IpAddress ?? "Unknown");
-                return ApiResponse<LoginResponse>.FailureResult("Invalid email or password");
+
+                // Log failed login attempt
+                _ = Task.Run(async () => await _auditService.LogFailedLoginAsync(
+                    request.Email, request.IpAddress, "Invalid password"));
+
+                return ApiResponse<LoginResponse>.FailureResult("Invalid credentials");
             }
 
             // Generate tokens
@@ -132,6 +155,11 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
 
             _logger.LogInformation("Login successful for user {Email} from IP {IpAddress}",
                 request.Email, request.IpAddress ?? "Unknown");
+
+            // Log successful login
+            _ = Task.Run(async () => await _auditService.LogSuccessfulLoginAsync(
+                user.Id.ToString(), request.Email, request.IpAddress));
+
             return ApiResponse<LoginResponse>.SuccessResult(response, "Login successful");
         }
         catch (Exception ex)

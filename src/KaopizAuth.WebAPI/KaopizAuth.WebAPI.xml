@@ -6,7 +6,24 @@
     <members>
         <member name="T:KaopizAuth.WebAPI.Controllers.AuthController">
             <summary>
-            Authentication controller for user registration, login, logout, and token refresh operations
+            Authentication controller for user r    /// <summary>
+            Authentication service health check
+            </summary>
+            <returns>Service health status and basic information</returns>
+            <remarks>
+            Returns the health status of the authentication service including timestamp.
+            This endpoint can be used for monitoring and load balancer health checks.
+            
+            **Example Response:**
+            ```json
+            {
+              "service": "Authentication",
+              "status": "Healthy",
+              "timestamp": "2025-08-21T10:00:00Z"
+            }
+            ```
+            </remarks>
+            <response code="200">Service is healthy</response>, logout, and token refresh operations
             </summary>
             <remarks>
             This controller handles all authentication-related operations including:
@@ -196,6 +213,36 @@
             </summary>
             <returns>Client IP address</returns>
         </member>
+        <member name="M:KaopizAuth.WebAPI.Controllers.AuthController.ResetPassword(KaopizAuth.Application.Common.Models.ResetPasswordRequest)">
+            <summary>
+            Reset user password
+            </summary>
+            <param name="request">Password reset request</param>
+            <returns>Reset result</returns>
+            <remarks>
+            Resets user password using a valid reset token.
+            
+            **Example Request:**
+            ```json
+            {
+              "email": "user@example.com",
+              "token": "reset-token-here",
+              "newPassword": "NewPassword123!"
+            }
+            ```
+            </remarks>
+            <response code="200">Password reset successful</response>
+            <response code="400">Invalid request or token</response>
+            <response code="401">Authentication required</response>
+            <response code="500">Internal server error</response>
+        </member>
+        <member name="M:KaopizAuth.WebAPI.Controllers.AuthController.ForgotPassword(System.String)">
+            <summary>
+            Request password reset
+            </summary>
+            <param name="email">Email address for password reset</param>
+            <returns>Password reset request confirmation</returns>
+        </member>
         <member name="M:KaopizAuth.WebAPI.Controllers.AuthController.Health">
             <summary>
             Health check endpoint for authentication service
@@ -251,6 +298,65 @@
             </summary>
             <returns>Complete health status</returns>
         </member>
+        <member name="T:KaopizAuth.WebAPI.Controllers.UserController">
+            <summary>
+            User management controller for profile operations
+            </summary>
+        </member>
+        <member name="M:KaopizAuth.WebAPI.Controllers.UserController.GetProfile">
+            <summary>
+            Get current user profile
+            </summary>
+            <returns>User profile information</returns>
+        </member>
+        <member name="M:KaopizAuth.WebAPI.Controllers.UserController.UpdateProfile(KaopizAuth.WebAPI.Controllers.UpdateProfileRequest)">
+            <summary>
+            Update user profile
+            </summary>
+            <param name="request">Profile update request</param>
+            <returns>Update result</returns>
+        </member>
+        <member name="M:KaopizAuth.WebAPI.Controllers.UserController.ChangePassword(KaopizAuth.WebAPI.Controllers.ChangePasswordRequest)">
+            <summary>
+            Change user password
+            </summary>
+            <param name="request">Password change request</param>
+            <returns>Change result</returns>
+        </member>
+        <member name="M:KaopizAuth.WebAPI.Controllers.UserController.ChangePasswordPut(KaopizAuth.WebAPI.Controllers.ChangePasswordRequest)">
+            <summary>
+            Change user password (PUT version for compatibility)
+            </summary>
+            <param name="request">Password change request</param>
+            <returns>Change result</returns>
+        </member>
+        <member name="M:KaopizAuth.WebAPI.Controllers.UserController.UpdateEmail(KaopizAuth.WebAPI.Controllers.UpdateEmailRequest)">
+            <summary>
+            Update user email address
+            </summary>
+            <param name="request">Email update request</param>
+            <returns>Update result</returns>
+        </member>
+        <member name="T:KaopizAuth.WebAPI.Controllers.UpdateProfileRequest">
+            <summary>
+            Request model for updating user profile
+            </summary>
+        </member>
+        <member name="T:KaopizAuth.WebAPI.Controllers.ChangePasswordRequest">
+            <summary>
+            Request model for changing password
+            </summary>
+        </member>
+        <member name="T:KaopizAuth.WebAPI.Controllers.UpdateEmailRequest">
+            <summary>
+            Request model for updating email address
+            </summary>
+        </member>
+        <member name="T:KaopizAuth.WebAPI.Infrastructure.JwtBearerOptionsConfigurator">
+            <summary>
+            Configures JWT Bearer options with the RSA key service
+            </summary>
+        </member>
         <member name="T:KaopizAuth.WebAPI.Middleware.CorrelationIdMiddleware">
             <summary>
             Middleware to add correlation IDs for request tracing and logging
@@ -264,6 +370,11 @@
         <member name="T:KaopizAuth.WebAPI.Middleware.LoginRateLimitingMiddleware">
             <summary>
             Rate limiting middleware for login attempts
+            </summary>
+        </member>
+        <member name="M:KaopizAuth.WebAPI.Middleware.LoginRateLimitingMiddleware.ClearRateLimitState">
+            <summary>
+            Clears rate limiting state - for testing purposes only
             </summary>
         </member>
         <member name="T:KaopizAuth.WebAPI.Middleware.PerformanceMonitoringMiddleware">

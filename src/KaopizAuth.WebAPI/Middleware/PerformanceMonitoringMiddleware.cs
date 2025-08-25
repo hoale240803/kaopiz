@@ -39,8 +39,11 @@ public class PerformanceMonitoringMiddleware
         var stopwatch = Stopwatch.StartNew();
         var requestId = Guid.NewGuid().ToString("N")[..8];
 
-        // Add request ID to response headers
-        context.Response.Headers.Append("X-Request-ID", requestId);
+        // Add request ID to response headers (only if response hasn't started)
+        if (!context.Response.HasStarted)
+        {
+            context.Response.Headers.Append("X-Request-ID", requestId);
+        }
 
         // Log request start
         if (requestLoggingEnabled)
@@ -69,8 +72,8 @@ public class PerformanceMonitoringMiddleware
             stopwatch.Stop();
             var elapsedMs = stopwatch.ElapsedMilliseconds;
 
-            // Add performance headers
-            if (performanceEnabled)
+            // Add performance headers (only if response hasn't started)
+            if (performanceEnabled && !context.Response.HasStarted)
             {
                 context.Response.Headers.Append("X-Response-Time-ms", elapsedMs.ToString());
             }

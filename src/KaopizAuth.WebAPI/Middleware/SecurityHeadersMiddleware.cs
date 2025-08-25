@@ -31,7 +31,7 @@ public class SecurityHeadersMiddleware
     {
         var securityEnabled = _configuration.GetValue<bool>("Security:EnableSecurityHeaders", true);
 
-        if (!securityEnabled)
+        if (!securityEnabled || context.Response.HasStarted)
         {
             return;
         }

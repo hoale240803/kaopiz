@@ -170,7 +170,7 @@ public static class AuthConstants
     /// </summary>
     public static class ErrorMessages
     {
-        public const string InvalidCredentials = "Invalid email or password.";
+        public const string InvalidCredentials = "Invalid credentials.";
         public const string AccountLocked = "Account is temporarily locked due to multiple failed login attempts.";
         public const string AccountDeactivated = "Account has been deactivated.";
         public const string EmailNotConfirmed = "Email address has not been confirmed.";

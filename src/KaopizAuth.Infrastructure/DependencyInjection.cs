@@ -4,6 +4,7 @@ using KaopizAuth.Domain.Interfaces;
 using KaopizAuth.Domain.Services;
 using KaopizAuth.Infrastructure.Data;
 using KaopizAuth.Infrastructure.Data.Repositories;
+using KaopizAuth.Infrastructure.Services;
 using KaopizAuth.Infrastructure.Services.Authentication;
 using KaopizAuth.Infrastructure.Services.Background;
 using KaopizAuth.Infrastructure.Services.Domain;
@@ -42,6 +43,8 @@ public static class DependencyInjection
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<IDeviceFingerprintService, DeviceFingerprintService>();
+        services.AddScoped<IAuditService, AuditService>();
+        services.AddSingleton<IJwtBlacklistService, JwtBlacklistService>();
 
         // Add background services
         services.AddHostedService<TokenCleanupService>();

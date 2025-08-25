@@ -4,9 +4,11 @@ using KaopizAuth.Domain.Entities;
 using KaopizAuth.Infrastructure;
 using KaopizAuth.Infrastructure.Data;
 using KaopizAuth.Infrastructure.Services.Authentication;
+using KaopizAuth.WebAPI.Infrastructure;
 using KaopizAuth.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Prometheus;
 using Serilog;
@@ -41,7 +43,7 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
 
     // User settings
     options.User.RequireUniqueEmail = true;
-    
+
     // Lockout settings
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
     options.Lockout.MaxFailedAccessAttempts = 5;
@@ -57,24 +59,10 @@ builder.Services.AddAuthentication(options =>
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-.AddJwtBearer(options =>
-{
-    // Configure JWT Bearer options after services are built
-    var serviceProvider = builder.Services.BuildServiceProvider();
-    var rsaKeyService = serviceProvider.GetRequiredService<IRsaKeyService>();
-    
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["JWT:Issuer"],
-        ValidAudience = builder.Configuration["JWT:Audience"],
-        IssuerSigningKey = rsaKeyService.GetRsaSecurityKey(),
-        ClockSkew = TimeSpan.Zero
-    };
-});
+.AddJwtBearer();
+
+// Configure JWT Bearer options using a configurator class
+builder.Services.AddSingleton<IPostConfigureOptions<JwtBearerOptions>, JwtBearerOptionsConfigurator>();
 
 builder.Services.AddAuthorization();
 
@@ -93,14 +81,14 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() 
-    { 
-        Title = "KaopizAuth API", 
+    c.SwaggerDoc("v1", new()
+    {
+        Title = "KaopizAuth API",
         Version = "v1",
         Description = "A comprehensive authentication API built with Clean Architecture and CQRS patterns",
-        Contact = new() 
-        { 
-            Name = "KAOPIZ SOFTWARE", 
+        Contact = new()
+        {
+            Name = "KAOPIZ SOFTWARE",
             Email = "support@kaopiz.com"
         },
         License = new()
@@ -109,7 +97,7 @@ builder.Services.AddSwaggerGen(c =>
             Url = new Uri("https://opensource.org/licenses/MIT")
         }
     });
-    
+
     // Include XML comments for better documentation
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
@@ -117,7 +105,7 @@ builder.Services.AddSwaggerGen(c =>
     {
         c.IncludeXmlComments(xmlPath);
     }
-    
+
     // Add JWT authentication to Swagger
     c.AddSecurityDefinition("Bearer", new()
     {
@@ -129,7 +117,7 @@ builder.Services.AddSwaggerGen(c =>
         Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
-    
+
     c.AddSecurityRequirement(new()
     {
         {
@@ -140,10 +128,10 @@ builder.Services.AddSwaggerGen(c =>
             Array.Empty<string>()
         }
     });
-    
+
     // Add operation examples and response types
     c.EnableAnnotations();
-    
+
     // Group endpoints by tags
     c.TagActionsBy(api => new[] { api.GroupName ?? api.ActionDescriptor.RouteValues["controller"] });
     c.DocInclusionPredicate((name, api) => true);
@@ -173,7 +161,7 @@ app.UseMiddleware<SecurityHeadersMiddleware>();
 // Add performance monitoring middleware
 app.UseMiddleware<PerformanceMonitoringMiddleware>();
 
-// Add rate limiting middleware
+// Add rate limiting middleware (always enabled for security testing)
 app.UseMiddleware<LoginRateLimitingMiddleware>();
 
 app.UseCors("DefaultPolicy");

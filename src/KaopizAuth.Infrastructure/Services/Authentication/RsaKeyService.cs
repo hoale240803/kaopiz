@@ -22,7 +22,10 @@ public class RsaKeyService : IRsaKeyService, IDisposable
     public RsaKeyService()
     {
         _rsa = RSA.Create(2048);
-        _rsaSecurityKey = new RsaSecurityKey(_rsa);
+        _rsaSecurityKey = new RsaSecurityKey(_rsa)
+        {
+            KeyId = "kaopiz-rsa-key"
+        };
     }
 
     public RsaSecurityKey GetRsaSecurityKey()

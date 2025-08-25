@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using KaopizAuth.Domain.Entities;
 using KaopizAuth.Infrastructure.Data;
 
@@ -12,6 +11,14 @@ namespace KaopizAuth.SecurityTests.Infrastructure;
 /// </summary>
 public class SecurityTestWebApplicationFactory : WebApplicationFactory<Program>
 {
+    private readonly string _databaseName;
+
+    public SecurityTestWebApplicationFactory()
+    {
+        // Create a unique database name for each test instance to avoid conflicts
+        _databaseName = $"SecurityTestDatabase_{Guid.NewGuid()}";
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureServices(services =>
@@ -23,33 +30,37 @@ public class SecurityTestWebApplicationFactory : WebApplicationFactory<Program>
                 services.Remove(descriptor);
             }
 
-            // Add in-memory database for testing
+            // Add in-memory database for testing with unique database name
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                options.UseInMemoryDatabase("SecurityTestDatabase_" + Guid.NewGuid());
+                options.UseInMemoryDatabase(_databaseName);
+            });
+
+            // Add memory cache service for JWT blacklist testing
+            services.AddMemoryCache();
+
+            // Configure Identity for testing - disable lockout for security tests
+            services.Configure<IdentityOptions>(options =>
+            {
+                options.Lockout.AllowedForNewUsers = false;
+                options.Lockout.MaxFailedAccessAttempts = int.MaxValue;
             });
         });
 
         builder.UseEnvironment("Testing");
-        
+
         // Configure test-specific settings
         builder.ConfigureAppConfiguration((context, config) =>
         {
             config.AddInMemoryCollection(new[]
             {
-                new KeyValuePair<string, string?>("JWT:Issuer", "TestIssuer"),
-                new KeyValuePair<string, string?>("JWT:Audience", "TestAudience"),
+                new KeyValuePair<string, string?>("JWT:Issuer", "KaopizAuth"),
+                new KeyValuePair<string, string?>("JWT:Audience", "KaopizAuth-Users"),
+                new KeyValuePair<string, string?>("JWT:AccessTokenExpirationMinutes", "15"),
+                new KeyValuePair<string, string?>("JWT:RefreshTokenExpirationDays", "7"),
                 new KeyValuePair<string, string?>("ConnectionStrings:DefaultConnection", "InMemory")
             });
         });
-    }
-
-    protected override void ConfigureWebHostDefaults(IWebHostBuilder builder)
-    {
-        base.ConfigureWebHostDefaults(builder);
-        
-        // Ensure we use the test environment
-        builder.UseEnvironment("Testing");
     }
 
     public async Task SeedTestDataAsync()
@@ -57,10 +68,10 @@ public class SecurityTestWebApplicationFactory : WebApplicationFactory<Program>
         using var scope = Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        
+
         // Ensure database is created
         await context.Database.EnsureCreatedAsync();
-        
+
         // Seed test data
         await SeedTestData(context, userManager);
     }

@@ -14,6 +14,11 @@ public record LogoutCommand : IRequest<ApiResponse<bool>>
     public string RefreshToken { get; init; } = string.Empty;
 
     /// <summary>
+    /// JWT access token to blacklist (alternative to refresh token)
+    /// </summary>
+    public string? JwtToken { get; init; }
+
+    /// <summary>
     /// IP address of the client requesting the logout
     /// </summary>
     public string? IpAddress { get; init; }

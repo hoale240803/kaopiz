@@ -19,7 +19,7 @@ public static class TestDataBuilders
             .RuleFor(u => u.UpdatedAt, f => f.Date.Recent());
 
         public static User Valid() => UserFaker.Generate();
-        
+
         public static User WithEmail(string email)
         {
             var user = UserFaker.Generate();

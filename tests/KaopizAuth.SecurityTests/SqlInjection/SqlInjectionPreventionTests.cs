@@ -41,15 +41,23 @@ public class SqlInjectionPreventionTests : SecurityTestBase
         {
             // Should return appropriate error status
             response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.Unauthorized);
-            
+
             var responseContent = await response.Content.ReadAsStringAsync();
-            
+
             // Should not expose database structure or SQL errors
             VerifyNoSensitiveDataExposed(responseContent);
-            
-            // Should not indicate successful authentication
-            responseContent.ToLowerInvariant().Should().NotContain("token");
-            responseContent.ToLowerInvariant().Should().NotContain("success");
+
+            // Should not contain access tokens in failed response
+            if (responseContent.ToLowerInvariant().Contains("\"success\":true"))
+            {
+                Assert.Fail("SQL injection should not result in successful authentication");
+            }
+
+            // Should not contain actual authentication tokens (JWT) in failed response
+            if (responseContent.Contains("eyJ") && responseContent.Contains("."))
+            {
+                Assert.Fail("SQL injection response should not contain JWT tokens");
+            }
         }
     }
 
@@ -80,7 +88,7 @@ public class SqlInjectionPreventionTests : SecurityTestBase
         if (response != null)
         {
             response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.Unauthorized);
-            
+
             var responseContent = await response.Content.ReadAsStringAsync();
             VerifyNoSensitiveDataExposed(responseContent);
         }
@@ -111,7 +119,7 @@ public class SqlInjectionPreventionTests : SecurityTestBase
         responseTime.Should().BeLessThan(TimeSpan.FromSeconds(5), "Response should not be delayed by SQL injection attempts");
 
         response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.Unauthorized);
-        
+
         var responseContent = await response.Content.ReadAsStringAsync();
         VerifyNoSensitiveDataExposed(responseContent);
     }
